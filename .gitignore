@@ -2,3 +2,7 @@
 *.dia
 *.docx
 *.jpeg
+*.iml
+.idea/
+out/
+
