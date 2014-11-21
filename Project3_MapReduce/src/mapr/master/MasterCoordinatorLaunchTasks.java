@@ -117,7 +117,7 @@ public class MasterCoordinatorLaunchTasks implements Runnable {
         ObjectInputStream ois = null;
         HostPort hp = workers.get(worker);
 
-        // check worker failed
+        // Check if worker failed before
         if(hp == null) {
             int oldJobID = task.getSourceJobID();
             if(!restartedJobs.contains(oldJobID)) {
@@ -132,8 +132,6 @@ public class MasterCoordinatorLaunchTasks implements Runnable {
             }
             return false;
         }
-
-        // end worker failed
 
         boolean result = true;
         try {
@@ -157,6 +155,7 @@ public class MasterCoordinatorLaunchTasks implements Runnable {
             }
         }
 
+        // Reassign tasks for worker if worker failed during connection
         if(!result) {
             for(FileInfo fileInfo: files.values()) {
                 fileInfo.removeWorker(worker);
@@ -242,6 +241,7 @@ public class MasterCoordinatorLaunchTasks implements Runnable {
                     String worker = next.getKey();
                     RunningTasks tasks = next.getValue();
 
+                    // Launch up to max number of maps
                     for(int x = 0; x < maxMaps - tasks.numMaps(); x++) {
                         if(queuedTasks.get(worker) == null) {
                             break;
@@ -280,6 +280,7 @@ public class MasterCoordinatorLaunchTasks implements Runnable {
                         }
                     }
 
+                    // Launch up to max number of sorts
                     for(int x = 0; x < maxSorts - tasks.numSorts(); x++) {
                         if(queuedTasks.get(worker) == null) {
                             break;
@@ -317,6 +318,7 @@ public class MasterCoordinatorLaunchTasks implements Runnable {
                         }
                     }
 
+                    // Launch up to max number of reduces
                     for(int x = 0; x < maxReds - tasks.numReduces(); x++) {
                         if(queuedTasks.get(worker) == null) {
                             break;

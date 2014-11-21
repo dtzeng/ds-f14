@@ -147,6 +147,7 @@ public class MasterCoordinator implements Runnable{
 
     public void printHelp() {
         System.out.println("jobs: See the list of running jobs");
+        System.out.println("tasks: See the list of running tasks");
         System.out.println("files: List the filenames on the DFS");
         System.out.println("workers: List the workers in the facility");
         System.out.println("users: List the current users");

@@ -1,11 +1,6 @@
 package mapr.master;
 
-import mapr.io.LoadClass;
-import mapr.tasks.Mapper;
-
 import java.io.*;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.net.Socket;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -552,7 +547,7 @@ public class MasterCoordinatorServeConnection implements Runnable{
         HostPort hp = workers.get(worker);
 
 
-        // check worker failed
+        // Check if worker failed before
         if(hp == null) {
             int oldJobID = task.getSourceJobID();
             if(!restartedJobs.contains(oldJobID)) {
@@ -567,10 +562,6 @@ public class MasterCoordinatorServeConnection implements Runnable{
             }
             return false;
         }
-
-        // end worker failed
-
-
 
         boolean result = true;
         try {
@@ -594,6 +585,7 @@ public class MasterCoordinatorServeConnection implements Runnable{
             }
         }
 
+        // Reassign tasks for worker if worker failed during connection
         if(!result) {
             for(FileInfo fileInfo: files.values()) {
                 fileInfo.removeWorker(worker);

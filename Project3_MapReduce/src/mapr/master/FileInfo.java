@@ -48,7 +48,7 @@ public class FileInfo implements Serializable {
 
     public void removeWorker(String worker) {
         for(int x = 0; x < numPartitions; x++) {
-            partitions.get(x).remove(worker);
+            removeReplicaLocation(x, worker);
         }
     }
 
