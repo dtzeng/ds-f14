@@ -138,63 +138,65 @@ Here is what happens when a MapReduce job is executed:
 
 \subsection{Building Instructions}
 
-\par\qquad To build the project from scratch, use the "build.sh" script provided in the handin directory at "/afs/andrew/course/15/440-f14/handin/lab3/dtzeng-yzong.x".
+\par\qquad To build the project from scratch, use the \texttt{build.sh} script provided in the handin directory at \texttt{/afs/andrew/course/15/440-f14/handin/lab3/dtzeng-yzong.x}.
 
 \begin{Verbatim}[commandchars=\#\[\]]
 gkesden@ghc11 dtzeng-yzong.x$ #userinput[chmod +x build.sh]
 gkesden@ghc11 dtzeng-yzong.x$ #userinput[./build.sh]
-
 \end{Verbatim}
 
-\par\qquad This will create a jar file called "MapReduce.jar".  You may copy this jar to any desired directory for testing below.
+\par\qquad This will create a jar file called \texttt{MapReduce.jar}.  You may copy this jar to any desired directory for testing below.
 
 \subsection{Testing Instructions}
 
-\par\qquad The following test routine is designed to survey most functionalities of the MapReduce framework. Feel free to experiment with different commands in MapReduce Master and MapReduce User command-line interfaces.  In our example, our facility has 1 master and 3 workers, with 2 users connected.  Let GHC_M be the host of the master process, GHC_W1/2/3 the workers, and GHC_U1/2 the users.  more blah........................
+\par\qquad The following test routine is designed to survey most functionalities of the MapReduce framework. Feel free to experiment with different commands in MapReduce Master and MapReduce User command-line interfaces.  In our example, our facility has 1 master and 3 workers, with 2 users connected.  Let \texttt{GHC\_M} be the host of the master process, \texttt{GHC\_{W1/2/3}} the workers, and \texttt{GHC\_{U1/2}} the users.
 
-To start up facility, do the following:
-1. Start up master
-\begin{Verbatim}[fontsize=\small, xleftmargin=-.5in,commandchars=\#\[\]]
+To start up the facility, do the following:
+
+\begin{easylist}[itemize]
+ & Start up master
+\begin{Verbatim}[fontsize=\scriptsize, xleftmargin=-.2in,commandchars=\#\[\]]
 gkesden@#comment[GHC_M] dtzeng-yzong.x$ #userinput[java -cp MapReduce.jar mapr.master.MasterCoordinator mapr.properties]
 \end{Verbatim}
-\\
-2. On each of the workers
-\begin{Verbatim}[fontsize=\small, xleftmargin=-.5in,commandchars=\#\[\]]
+ & On each of the workers
+\begin{Verbatim}[fontsize=\scriptsize, xleftmargin=-.2in,commandchars=\#\[\]]
 gkesden@#comment[GHC_W?] dtzeng-yzong.x$ #userinput[java -cp MapReduce.jar mapr.worker.WorkerCoordinator mapr.properties worker?]
 \end{Verbatim}
-\\
-Now that the facility has started up, the command line on the master should appear.  Make sure to connect at least 1 worker to the master before the specified timeout, otherwise the facility will shutdown automatically.  With the facility started up, you can now start the 2 users.\\
-3. On each of the users
-\begin{Verbatim}[fontsize=\small, xleftmargin=-.5in,commandchars=\#\[\]]
+ && Now that the facility has started up, the command line on the master should appear.  Make sure to connect at least 1 worker to the master before the specified timeout, otherwise the facility will shutdown automatically.  With the facility started up, you can now start the 2 users.
+ & On each of the users
+\begin{Verbatim}[fontsize=\scriptsize, xleftmargin=-.2in,commandchars=\#\[\]]
 gkesden@#comment[GHC_U?] dtzeng-yzong.x$ #userinput[java -cp MapReduce.jar mapr.user.UserCoordinator mapr.properties user?]
 \end{Verbatim}
-\\
-So, now we have everything up and running.  On the master, you can use the "workers" and "users" commands to see the status of the workers and users.  Now, let's upload our example files.  You can do this on any user.  This demonstrates on user1.
-\begin{Verbatim}[fontsize=\small, xleftmargin=-.5in,commandchars=\#\[\]]
+\end{easylist}
+
+\par\qquad So, now we have everything up and running.  On the master, you can use the \texttt{workers} and \texttt{users} commands to see the status of the workers and users.  Now, let's upload our example files.  You can do this on any user.  This demonstrates on \texttt{user1}.
+\begin{Verbatim}[commandchars=\#\[\]]
 user1@9876 > #userinput[upload large_count.log]
 File replicated successfully.
 user1@9876 > #userinput[upload large_grep.log]
 File replicated successfully.
 \end{Verbatim}
-\\
-Now, when you run the "files" command on either user or master, you can see the information of the files on the DFS, and where the replications are located.  Let's now start a new word count and grep job.
-\begin{Verbatim}[fontsize=\small, xleftmargin=-.5in,commandchars=\#\[\]]
+
+\par\qquad Now, when you run the \texttt{files} command on either user or master, you can see the information of the files on the DFS, and where the replications are located.  Let's now start a new WordCount and Grep job.
+\begin{Verbatim}[commandchars=\#\[\]]
 user1@9876 > #userinput[count large_count.log 0 99999 ctr_out]
 Job started with ID 0
 user1@9876 > #userinput[grep large_grep.log 0 99999 grep_out tzeng]
 Job started with ID 1
 \end{Verbatim}
-You can now use the "jobs" command on either user or master, to see the status of the job.  To see the individual tasks, use "tasks" on the master machine only.  When everything is finished, you can see the results of each job in the user's specified DFS directory, or in our case "worker1-dfs-root".  Now let's see what happens when a worker fails.  Start another job, and kill a worker.
-\begin{Verbatim}[fontsize=\small, xleftmargin=-.5in,commandchars=\#\[\]]
+You can now use the \texttt{jobs} command on either user or master, to see the status of the job.  To see the individual tasks, use \texttt{tasks} on the master machine only.  When everything is finished, you can see the results of each job in the user's specified DFS directory, or in our case \texttt{worker1-dfs-root}.
+
+\par Now let's see what happens when a worker fails.  Start another job, and kill a worker.
+\begin{Verbatim}[fontsize=\scriptsize, xleftmargin=-.2in,commandchars=\#\[\]]
 user1@9876 > #userinput[count large_count.log 0 99999 ctr_out]
 Job started with ID 2
 	#comment[*** Kill a worker, in this example worker 1 ***]
 gkesden@#comment[GHC_W1] dtzeng-yzong.x$ #userinput[java -cp MapReduce.jar mapr.worker.WorkerCoordinator mapr.properties worker1]
 Successful connection to facility master established.
-\^C gkesden@#comment[GHC_W1] dtzeng-yzong.x$
+#userinput[^C] gkesden@#comment[GHC_W1] dtzeng-yzong.x$
 \end{Verbatim}
-When you run the "jobs" command again, you will see that the status for job 2, becomes "RESTARTED AS JOB 3".  Job 3 will now finish what job 2 requested.  If you try the "files" command, you can see that the replicas on the killed worker (worker1) are removed.\\
-Lastly, to shut down the facility, use the "shutdown" command on the master CLI.  The users are not included in the facility, so another interesting feature is the "reconnect" command on the user.  If the facility is started up again (masters and workers), the user can simply try to reconnect, and it will automatically be added back into the master's state.
+When you run the \texttt{jobs} command again, you will see that the status for job 2, becomes \texttt{RESTARTED AS JOB 3}.  Job 3 will now finish what job 2 requested.  If you try the "files" command, you can see that the replicas on the killed worker (worker1) are removed.
+\par\qquad Lastly, to shut down the facility, use the \texttt{shutdown} command on the master CLI.  The users are not included in the facility, so another interesting feature is the "reconnect" command on the user.  If the facility is started up again (masters and workers), the user can simply try to reconnect, and it will automatically be added back into the master's state.
 
 \section{Further Work \& Enhancements}
 
