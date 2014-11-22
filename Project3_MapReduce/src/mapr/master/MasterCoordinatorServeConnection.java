@@ -528,7 +528,6 @@ public class MasterCoordinatorServeConnection implements Runnable{
 
             oos.flush();
         } catch (IOException e) {
-            e.printStackTrace();
         } finally {
             try {
                 if(oos != null) oos.close();
