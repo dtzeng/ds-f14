@@ -33,7 +33,7 @@ public class FileInfo implements Serializable {
   /**
    * Initializes a <tt>FileInfo</tt> with certain number of partitions (chunks) and records (lines).
    * 
-   * @param numPartitions Numbre of paritions of the file.
+   * @param numPartitions Number of partitions of the file.
    * @param numRecords Number of line of the file.
    */
   public FileInfo(int numPartitions, int numRecords) {
@@ -57,7 +57,7 @@ public class FileInfo implements Serializable {
   /**
    * Looks up a specific partition of the file on DFS.
    * 
-   * @param partition Parition ID to request.
+   * @param partition Partition ID to request.
    * @return Name of some worker that contains the requested partition.
    */
   public String getReplicaLocation(int partition) {
@@ -68,9 +68,9 @@ public class FileInfo implements Serializable {
   }
 
   /**
-   * Adds to the record that some specific worker contains a certain parition of file.
+   * Adds to the record that some specific worker contains a certain partition of file.
    * 
-   * @param partition Parition ID that the Worker contains.
+   * @param partition Partition ID that the Worker contains.
    * @param worker Name of the Worker node in concern.
    */
   public void addReplicaLocation(int partition, String worker) {
@@ -78,10 +78,10 @@ public class FileInfo implements Serializable {
   }
 
   /**
-   * Remove from the record that some specific worker contains a certain parition of file.
+   * Remove from the record that some specific worker contains a certain partition of file.
    * 
-   * @param partition Parition ID that the Worker <i>no longer</i> contains.
-   * @param workerName of the Worker node in concern.
+   * @param partition Partition ID that the Worker <i>no longer</i> contains.
+   * @param worker Name of the Worker node in concern.
    */
   public void removeReplicaLocation(int partition, String worker) {
     partitions.get(partition).remove(worker);

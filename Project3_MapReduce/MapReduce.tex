@@ -134,101 +134,67 @@ Here is what happens when a MapReduce job is executed:
 
 \subsection{Dependencies}
 
-\par\qquad This project does not have any external dependencies, and can be compiled with standard Java libraries. Also, to build the project from scratch without using IDE, blah...............................
+\par\qquad This project does not have any external dependencies, and can be compiled with standard Java libraries. To build the project from scratch without using IDE, see the following section.
 
 \subsection{Building Instructions}
 
-\par\qquad To build the project from scratch, follow the steps below:
+\par\qquad To build the project from scratch, use the "build.sh" script provided in the handin directory at "/afs/andrew/course/15/440-f14/handin/lab3/dtzeng-yzong.x".
 
 \begin{Verbatim}[commandchars=\#\[\]]
-gkesden@ghc11 yzong$ #userinput[cd RMIFramework]
-gkesden@ghc11 yzong/RMIFramework$ #userinput[ls]
-    build.xml  doc  lib  src
-gkesden@ghc11 yzong/RMIFramework$ #userinput[ant clean build jars]
-    #comment[(Output omitted)]
-gkesden@ghc11 yzong/RMIFramework$ #userinput[ls]
-    bin        lib                      RMIServer.jar         src
-    build.xml  RMICalculatorClient.jar  RMITestRegistry.jar
-    doc        RMIRegistry.jar          RMIZipCodeClient.jar
+gkesden@ghc11 dtzeng-yzong.x$ #userinput[chmod +x build.sh]
+gkesden@ghc11 dtzeng-yzong.x$ #userinput[./build.sh]
 
 \end{Verbatim}
 
-\par\qquad To clean the project directory, run the following command:
-\begin{Verbatim}[commandchars=\#\[\]]
-gkesden@ghc11 yzong/RMIFramework$ #userinput[ant clean]
-    #comment[(Output omitted)]
-gkesden@ghc11 yzong/RMIFramework$ #userinput[ls]
-    build.xml  doc  lib  src
-\end{Verbatim}
+\par\qquad This will create a jar file called "MapReduce.jar".  You may copy this jar to any desired directory for testing below.
 
 \subsection{Testing Instructions}
 
-\par\qquad The following test routine is designed to survey most functionalities of the MapReduce framework. Feel free to experiment with different commands in MapReduce Master and MapReduce User command-line interfaces. The machines and ports in use in the sample are \texttt{ghc12:6060} (RMI Registry), \texttt{ghc15:41052} (RMI Server), and \texttt{ghc16} (client-side application). Other combinations will also work, but be sure to substitute with the correct parameters below.
+\par\qquad The following test routine is designed to survey most functionalities of the MapReduce framework. Feel free to experiment with different commands in MapReduce Master and MapReduce User command-line interfaces.  In our example, our facility has 1 master and 3 workers, with 2 users connected.  Let GHC_M be the host of the master process, GHC_W1/2/3 the workers, and GHC_U1/2 the users.  more blah........................
 
-{\small
+To start up facility, do the following:
+1. Start up master
 \begin{Verbatim}[fontsize=\small, xleftmargin=-.5in,commandchars=\#\[\]]
-## Starts up RMI Registry
-gkesden@ghc#comment[12] yzong/RMIFramework$ #userinput[java -jar RMIRegistry.jar -p 6060]
-        #comment[*** Stdout tails RMI Registry activity log ***]
-
-## Sanity check for RMI Registry (#userinput[-ea] flag is necessary!)
-gkesden@ghc#comment[15] yzong/RMIFramework$ #userinput[java -jar -ea RMITestRegistry.jar ]
-Connecting to RMI Registry Server...
-Registry Hostname: #userinput[ghc12.ghc.andrew.cmu.edu]
-Registry Port Number: #userinput[6060]
-#stdout[Testing PING...]
-#stdout[Testing BIND...]
-#stdout[Testing LOOKUP]
-#stdout[Testing REBIND]
-#stdout[Testing LIST]
-#stdout[Testing UNBIND]
-#stdout[All tests passed!]
-
-## Start an RMI Server
-gkesden@ghc#comment[15] yzong/RMIFramework$ #userinput[java -jar RMIServer.jar -h ghc12.ghc.andrew.cmu.edu -p 6060]
-#stdout[INFO -- RMI Server started at ghc15.ghc.andrew.cmu.edu:41052.]
-#stdout[        Master RMI Registry at ghc12.ghc.andrew.cmu.edu:6060.]
-#stdout[INFO -- Connection to RMI Server established. CLI started.]
-RMI Server @ 41052 > #userinput[bind service1 com.yzong.dsf14.RMIFramework.examples.CalculatorServerImpl]
-#stdout[Successfully registered service service1!]
-
-RMI Server @ 41052 > #userinput[bind service9 com.yzong.dsf14.RMIFramework.examples.ZipCodeServerImpl]
-#stdout[Successfully registered service service9!]
-
-RMI Server @ 41052 > #userinput[list]
-#stdout[Following are the entries of Remote Object Reference table on local RMI Server:]
-#stdout[Object Key: 0]
-#stdout[Remote Interface Name: com.yzong.dsf14.RMIFramework.examples.CalculatorServer]
-#stdout[Object Key: 1]
-#stdout[Remote Interface Name: com.yzong.dsf14.RMIFramework.examples.ZipCodeServer]
-
-## Test the RMI ZipCode Client
-gkesden@ghc#comment[16] yzong/RMIFramework$ #userinput[java -jar RMIZipCodeClient.jar]
-Registry Hostname: #userinput[ghc12.ghc.andrew.cmu.edu]
-Registry Port Number: #userinput[6060]
-Registry Service Name for ZipCodeServer: #userinput[service9]
-Data File Path: #userinput[src/com/yzong/dsf14/RMIFramework/examples/ZipCodeData.txt]
-        #comment[*** Expected test output ***]
-
-## Test the RMI Calculator Client
-gkesden@ghc#comment[16] yzong/RMIFramework$ #userinput[java -jar RMICalculatorClient.jar]
-Registry Hostname: #userinput[ghc12.ghc.andrew.cmu.edu]
-Registry Port Number: #userinput[6060]
-Registry Service Name for CalculatorServer: #userinput[service1]
-Setting the name of Calculator Object as: #userinput[CalcFooBar]
-        #comment[*** Expected test output ***]
-Registry Service Name for ZipCodeServer: #userinput[service9]
-Data File Path: #userinput[src/com/yzong/dsf14/RMIFramework/examples/ZipCodeData.txt]
-Initializing the ZipCodeSever...
-        #comment[*** Expected test output ***]
-        
-## Exit RMI Server; Clean-up Services on RMI Registry
-RMI Server @ 41052 > #userinput[exit]
-#stdout[Unbound service service1 from RMI Registry.]
-#stdout[Unbound service service9 from RMI Registry.]
-#stdout[Done. Goodbye!]
+gkesden@#comment[GHC_M] dtzeng-yzong.x$ #userinput[java -cp MapReduce.jar mapr.master.MasterCoordinator mapr.properties]
 \end{Verbatim}
-}
+\\
+2. On each of the workers
+\begin{Verbatim}[fontsize=\small, xleftmargin=-.5in,commandchars=\#\[\]]
+gkesden@#comment[GHC_W?] dtzeng-yzong.x$ #userinput[java -cp MapReduce.jar mapr.worker.WorkerCoordinator mapr.properties worker?]
+\end{Verbatim}
+\\
+Now that the facility has started up, the command line on the master should appear.  Make sure to connect at least 1 worker to the master before the specified timeout, otherwise the facility will shutdown automatically.  With the facility started up, you can now start the 2 users.\\
+3. On each of the users
+\begin{Verbatim}[fontsize=\small, xleftmargin=-.5in,commandchars=\#\[\]]
+gkesden@#comment[GHC_U?] dtzeng-yzong.x$ #userinput[java -cp MapReduce.jar mapr.user.UserCoordinator mapr.properties user?]
+\end{Verbatim}
+\\
+So, now we have everything up and running.  On the master, you can use the "workers" and "users" commands to see the status of the workers and users.  Now, let's upload our example files.  You can do this on any user.  This demonstrates on user1.
+\begin{Verbatim}[fontsize=\small, xleftmargin=-.5in,commandchars=\#\[\]]
+user1@9876 > #userinput[upload large_count.log]
+File replicated successfully.
+user1@9876 > #userinput[upload large_grep.log]
+File replicated successfully.
+\end{Verbatim}
+\\
+Now, when you run the "files" command on either user or master, you can see the information of the files on the DFS, and where the replications are located.  Let's now start a new word count and grep job.
+\begin{Verbatim}[fontsize=\small, xleftmargin=-.5in,commandchars=\#\[\]]
+user1@9876 > #userinput[count large_count.log 0 99999 ctr_out]
+Job started with ID 0
+user1@9876 > #userinput[grep large_grep.log 0 99999 grep_out tzeng]
+Job started with ID 1
+\end{Verbatim}
+You can now use the "jobs" command on either user or master, to see the status of the job.  To see the individual tasks, use "tasks" on the master machine only.  When everything is finished, you can see the results of each job in the user's specified DFS directory, or in our case "worker1-dfs-root".  Now let's see what happens when a worker fails.  Start another job, and kill a worker.
+\begin{Verbatim}[fontsize=\small, xleftmargin=-.5in,commandchars=\#\[\]]
+user1@9876 > #userinput[count large_count.log 0 99999 ctr_out]
+Job started with ID 2
+	#comment[*** Kill a worker, in this example worker 1 ***]
+gkesden@#comment[GHC_W1] dtzeng-yzong.x$ #userinput[java -cp MapReduce.jar mapr.worker.WorkerCoordinator mapr.properties worker1]
+Successful connection to facility master established.
+\^C gkesden@#comment[GHC_W1] dtzeng-yzong.x$
+\end{Verbatim}
+When you run the "jobs" command again, you will see that the status for job 2, becomes "RESTARTED AS JOB 3".  Job 3 will now finish what job 2 requested.  If you try the "files" command, you can see that the replicas on the killed worker (worker1) are removed.\\
+Lastly, to shut down the facility, use the "shutdown" command on the master CLI.  The users are not included in the facility, so another interesting feature is the "reconnect" command on the user.  If the facility is started up again (masters and workers), the user can simply try to reconnect, and it will automatically be added back into the master's state.
 
 \section{Further Work \& Enhancements}
 

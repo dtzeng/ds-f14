@@ -91,7 +91,7 @@ public class MasterCoordinatorLaunchTasks implements Runnable {
 
     HashMap<String, TaskInfo> reduces = new HashMap<String, TaskInfo>();
 
-    /* Partition input file by paritition size. */
+    /* Partition input file by partition size. */
     for (int x = start / partitionSize; x <= end / partitionSize; x++) {
       String worker = files.get(filename).getReplicaLocation(x);
 

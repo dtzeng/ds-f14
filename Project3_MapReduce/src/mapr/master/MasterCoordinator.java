@@ -169,14 +169,6 @@ public class MasterCoordinator implements Runnable {
         String status = info.getStatus();
         System.out.format("%8s%30s%10s%n", id, cmd, status);
       }
-
-      // Remove finished/failed jobs
-      /*
-       * Iterator<Map.Entry<Integer, JobInfo>> iterator = jobs.entrySet().iterator();
-       * while(iterator.hasNext()) { Map.Entry<Integer, JobInfo> next = iterator.next(); String
-       * status = next.getValue().getStatus(); if(status.equals("FINISHED") ||
-       * status.equals("FAILED") || status.contains("RESTARTED")) { iterator.remove(); } }
-       */
     }
     System.out.println();
   }
@@ -399,7 +391,7 @@ public class MasterCoordinator implements Runnable {
   /**
    * Entry point for the MapReduce master CLI facility.
    * 
-   * @param args User CLI paramters
+   * @param args User CLI parameters
    */
   public static void main(String[] args) {
     if (args.length < 1) {

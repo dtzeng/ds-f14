@@ -17,7 +17,7 @@ public class WordCountSorter extends Sorter {
   }
 
   /**
-   * Same as the `combine` for <tt>GrepSort</tt> -- "addes up" two integers represented by
+   * Same as the `combine` for <tt>GrepSort</tt> -- "adds up" two integers represented by
    * strings/nulls, where the latter are treated as 0.
    */
   @Override

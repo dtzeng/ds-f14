@@ -37,7 +37,7 @@ public class WorkerCoordinatorServeConnection implements Runnable {
    */
   String masterHost;
   /**
-   * Port number of Msater node.
+   * Port number of Master node.
    */
   int masterPort;
   /**

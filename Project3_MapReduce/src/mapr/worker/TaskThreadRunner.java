@@ -17,7 +17,7 @@ import mapr.tasks.Task;
  */
 public class TaskThreadRunner implements Runnable {
   /**
-   * Task thread and metatada.
+   * Task thread and metadata.
    */
   TaskThread taskThread;
   /**

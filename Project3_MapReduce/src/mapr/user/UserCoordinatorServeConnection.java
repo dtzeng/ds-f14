@@ -43,7 +43,7 @@ public class UserCoordinatorServeConnection implements Runnable {
       oos = new ObjectOutputStream(socket.getOutputStream());
       ois = new ObjectInputStream(socket.getInputStream());
       String command = ois.readUTF();
-      /* If Master shuts down, appends `DISCONECTED` to client prompt. */
+      /* If Master shuts down, appends `DISCONNECTED` to client prompt. */
       if (command.equals("shutdown")) {
         shutdown.append(" (DISCONNECTED)");
       }
