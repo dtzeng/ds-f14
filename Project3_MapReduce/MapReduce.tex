@@ -1,0 +1,248 @@
+\documentclass{article} % For LaTeX2e
+\usepackage{nips13submit_e,times}
+%\usepackage{hyperref}
+\usepackage[hyphens]{url}
+\usepackage{alltt}
+\usepackage{multirow, caption}
+\usepackage{algorithm}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage[noend]{algpseudocode}
+\usepackage{etoolbox}
+\usepackage{hyperref}
+\usepackage{fancyvrb}
+\usepackage{tgcursor}
+\usepackage{amsfonts}
+\usepackage[ampersand]{easylist}
+\newcommand\userinput[1]{\textbf{#1}}
+\newcommand\comment[1]{\textit{#1}}
+\newcommand\stdout[1]{\textsl{#1}}
+
+\makeatletter
+\preto{\@verbatim}{\topsep=0pt \partopsep=0pt }
+\makeatother
+
+\title{MapReduce Framework\\Final Report}
+
+\author{
+Derek Tzeng\\
+Carnegie Mellon University\\
+Pittsburgh, PA 15213 \\
+\texttt{dtzeng@andrew.cmu.edu} \\
+\And
+Yiming Zong\\
+Carnegie Mellon University\\
+Pittsburgh, PA 15213 \\
+\texttt{yzong@cmu.edu} \\
+}
+
+% The \author macro works with any number of authors. There are two commands
+% used to separate the names and addresses of multiple authors: \And and \AND.
+%
+% Using \And between authors leaves it to \LaTeX{} to determine where to break
+% the lines. Using \AND forces a linebreak at that point. So, if \LaTeX{}
+% puts 3 of 4 authors names on the first line, and the last on the second
+% line, try using \AND instead of \And before the third author name.
+
+\newcommand{\fix}{\marginpar{FIX}}
+\newcommand{\new}{\marginpar{NEW}}
+
+\nipsfinalcopy % Uncomment for camera-ready version
+
+\begin{document}
+
+
+\maketitle
+
+\begin{abstract}
+This report reflects our final progress on MapReduce Framework project for 15-440, Fall 2014. We will first give an overview of the framework and discuss its components one by one. Then, we will describe the lifecycle of a MapReduce job and demonstrate the communication protocol between MapReduce components. Also, we will outline how to build and test the current framework from source, and include a Developer's Guide for developing MapReduce Applications based on the framework. Eventually, we will survey some additional unimplemented features that would be desirable for a commercial package.
+\end{abstract}
+
+\section{Overview of MapReduce Framework}
+
+\par\qquad MapReduce is a highly scalable and parallel computing model that allows application programmers to specify \emph{Map} and \emph{Reduce} methods on a distributed data set in order to complete computational tasks. According to our design, nodes on the framework have one of the three following roles: \emph{Master}, \emph{Worker}, and the \emph{Users}.
+\par\qquad Essentially, \emph{Master} is the coordinating node that does not store any data or perform any computational tasks but merely work on administrative tasks like maintaining a global Job Queue and a DFS Lookup Table. On the other hand, a \emph{Worker} receives and performs tasks pushed from \emph{Master}, and also holds partitions of data on the Distributed File System. Last but not least, a \emph{User} node is a designated client of the MapReduce framework, so where an end-user is able to push data on to the DFS and execute a MapReduce job based on the data.
+\par\qquad Next section contains more detailed specifications of the three components.
+
+\section{Framework Components}
+
+\subsection{MapReduce/DFS Master}
+
+\par
+
+\par Meanwhile, it is important to notice that our Master is a \emph{single point of failure} in our framework, because once it fails, all information related to Jobs, Tasks, and Distributed Files are lost, and recovery is impossible because we also lose the routing rule of partial results to the requesting client.
+
+\subsection{MapReduce/DFS Workers}
+
+\par\qquad They carry out all the work.
+
+\subsection{MapReduce Users}
+
+\par\qquad In our design, MapReduce users are specifically designated nodes that are allowed to interact with the MapReduce cluster by contacting the Master node. 
+
+\section{Lifecycle of MapReduce Job}
+Here is what happens when a MapReduce job is executed:
+\subsection*{Step One: User Load Data onto DFS}
+\subsection*{Step Two: User Execute Task from User CLI}
+\subsection*{Step Three: Mappers Feed Results to Sorters}
+\subsection*{Step Four: Sorters Feed Results to Reducers}
+\subsection*{Step Five: Reducers Return Results Back to Client}
+
+\section{Communication Protocols}
+\par\qquad As seen in the previous section, the key of the MapReduce framework is its management of concurrent requests, especially at the Master node. The following two sub-section will survey the network interactions between MapReduce Master node and two other components. 
+
+\subsection{Communication Between MapReduce User \& MapReduce Master}
+
+\par\qquad By discussion in \emph{Section One}, (What master does). Following are the communication details of each method:
+
+\subsection{Communication Protocol: MapReduce Master \& MapReduce Workers}
+
+\subsection{Failure Handling}
+\par\qquad Due to the inherent irreliability of a network, it is not unlikely that some request packages fail to go through temporarily. Also, because potentially a large number of machines can be involved in the framework, it is fairly possible that some nodes goes down while running a task. Without proper failure handling, that faulty node can be a \emph{single point of failure (SPOF)}, which is what we want to avoid in a distributed system. Therefore, we addopted the following three approaches to handle failures:
+\begin{easylist}[itemize]
+    & Periodic Heartbeat: The master node sends periodic \texttt{ping} requests to all workers. If after a certain amount of time the worker still has not responded, we mark the worker as ``faulty'', and migrate the tasks already assigned to it to other nodes (see \emph{Task Migration} below);
+    & Task Retry: When a task fails on a node for some reason, we allow the task to be re-routed to another node for re-try before marking the task as failed. With this measure, we avoid the case when a task and a work don't work well -- for example, when the underlying file system of that worker node has a bad sector;
+    & Task Migration: After we have determined that a node is faulty, we re-distribute all tasks running on that node to other available nodes. This this case, we do not need to re-start the entire Job only becaues of one faulty worker node.
+\end{easylist}
+
+
+
+\section{Special Considerations}
+\par\qquad Following are speical features that the authors thinks are useful for application programmers and are beyond the request of the project specification:
+
+\begin{itemize}
+    \item{\emph{Command Line Utility at RMI Servers and Users:}} 
+    \item{\emph{Elegant Error Catching:}}
+    \item{\emph{MapReduce Elegant Shutdown:}}
+    \item{\emph{Cluster Failure Checking:}}
+    \item{\emph{User node specified:}}
+\end{itemize}
+
+\section{Developer's Guide -- Using MapReduce Framework}
+
+\par\qquad Since the MapReduce Framework is to be used by application developers, a pre-compiled Javadoc of the project can be found in the \texttt{doc/} directory under the project root. Users can simply open \texttt{doc/index.html} and access the documentation of the entire code base including the API usage guides. The mechanism of MapReduce Framework has been explained in previous sections.
+
+\par\qquad In order to fit a Java Object into the RMI Framework, say, \texttt{WordCount}, the application programmer should create three classes: \texttt{WordCountMapper} that extends the base \texttt{Mapper} class, and similarly \texttt{WordCountSorter} and \texttt{WordCountReducer}. Then, the developer should put the classes under \texttt{mapr/examples} directory, such that MapReduce users are able to execute job based on our definition of \emph{Mapper}, \emph{Sorter}, and \emph{Reducer}.
+
+\par\qquad In general, application developers are strongly recommended to look at the sample applications in the Package \texttt{mapr.examples}, and follow the existing code. We have provided the sample code for WordCount and Grep, and other MapReduce applications can be built similarly.
+
+\section{Dependencies, Building, and Testing}
+
+\par\qquad The \texttt{dtzeng.yzong} handin directory will contain two sub-directories, i.e. \texttt{reports} and \texttt{RMIFramework}. In the former directory you can find this report file, and in the latter directory is the clean source code for the project.
+
+\subsection{Dependencies}
+
+\par\qquad This project does not have any external dependencies, and can be compiled with standard Java libraries. Also, to build the project from scratch without using IDE, blah...............................
+
+\subsection{Building Instructions}
+
+\par\qquad To build the project from scratch, follow the steps below:
+
+\begin{Verbatim}[commandchars=\#\[\]]
+gkesden@ghc11 yzong$ #userinput[cd RMIFramework]
+gkesden@ghc11 yzong/RMIFramework$ #userinput[ls]
+    build.xml  doc  lib  src
+gkesden@ghc11 yzong/RMIFramework$ #userinput[ant clean build jars]
+    #comment[(Output omitted)]
+gkesden@ghc11 yzong/RMIFramework$ #userinput[ls]
+    bin        lib                      RMIServer.jar         src
+    build.xml  RMICalculatorClient.jar  RMITestRegistry.jar
+    doc        RMIRegistry.jar          RMIZipCodeClient.jar
+
+\end{Verbatim}
+
+\par\qquad To clean the project directory, run the following command:
+\begin{Verbatim}[commandchars=\#\[\]]
+gkesden@ghc11 yzong/RMIFramework$ #userinput[ant clean]
+    #comment[(Output omitted)]
+gkesden@ghc11 yzong/RMIFramework$ #userinput[ls]
+    build.xml  doc  lib  src
+\end{Verbatim}
+
+\subsection{Testing Instructions}
+
+\par\qquad The following test routine is designed to survey most functionalities of the MapReduce framework. Feel free to experiment with different commands in MapReduce Master and MapReduce User command-line interfaces. The machines and ports in use in the sample are \texttt{ghc12:6060} (RMI Registry), \texttt{ghc15:41052} (RMI Server), and \texttt{ghc16} (client-side application). Other combinations will also work, but be sure to substitute with the correct parameters below.
+
+{\small
+\begin{Verbatim}[fontsize=\small, xleftmargin=-.5in,commandchars=\#\[\]]
+## Starts up RMI Registry
+gkesden@ghc#comment[12] yzong/RMIFramework$ #userinput[java -jar RMIRegistry.jar -p 6060]
+        #comment[*** Stdout tails RMI Registry activity log ***]
+
+## Sanity check for RMI Registry (#userinput[-ea] flag is necessary!)
+gkesden@ghc#comment[15] yzong/RMIFramework$ #userinput[java -jar -ea RMITestRegistry.jar ]
+Connecting to RMI Registry Server...
+Registry Hostname: #userinput[ghc12.ghc.andrew.cmu.edu]
+Registry Port Number: #userinput[6060]
+#stdout[Testing PING...]
+#stdout[Testing BIND...]
+#stdout[Testing LOOKUP]
+#stdout[Testing REBIND]
+#stdout[Testing LIST]
+#stdout[Testing UNBIND]
+#stdout[All tests passed!]
+
+## Start an RMI Server
+gkesden@ghc#comment[15] yzong/RMIFramework$ #userinput[java -jar RMIServer.jar -h ghc12.ghc.andrew.cmu.edu -p 6060]
+#stdout[INFO -- RMI Server started at ghc15.ghc.andrew.cmu.edu:41052.]
+#stdout[        Master RMI Registry at ghc12.ghc.andrew.cmu.edu:6060.]
+#stdout[INFO -- Connection to RMI Server established. CLI started.]
+RMI Server @ 41052 > #userinput[bind service1 com.yzong.dsf14.RMIFramework.examples.CalculatorServerImpl]
+#stdout[Successfully registered service service1!]
+
+RMI Server @ 41052 > #userinput[bind service9 com.yzong.dsf14.RMIFramework.examples.ZipCodeServerImpl]
+#stdout[Successfully registered service service9!]
+
+RMI Server @ 41052 > #userinput[list]
+#stdout[Following are the entries of Remote Object Reference table on local RMI Server:]
+#stdout[Object Key: 0]
+#stdout[Remote Interface Name: com.yzong.dsf14.RMIFramework.examples.CalculatorServer]
+#stdout[Object Key: 1]
+#stdout[Remote Interface Name: com.yzong.dsf14.RMIFramework.examples.ZipCodeServer]
+
+## Test the RMI ZipCode Client
+gkesden@ghc#comment[16] yzong/RMIFramework$ #userinput[java -jar RMIZipCodeClient.jar]
+Registry Hostname: #userinput[ghc12.ghc.andrew.cmu.edu]
+Registry Port Number: #userinput[6060]
+Registry Service Name for ZipCodeServer: #userinput[service9]
+Data File Path: #userinput[src/com/yzong/dsf14/RMIFramework/examples/ZipCodeData.txt]
+        #comment[*** Expected test output ***]
+
+## Test the RMI Calculator Client
+gkesden@ghc#comment[16] yzong/RMIFramework$ #userinput[java -jar RMICalculatorClient.jar]
+Registry Hostname: #userinput[ghc12.ghc.andrew.cmu.edu]
+Registry Port Number: #userinput[6060]
+Registry Service Name for CalculatorServer: #userinput[service1]
+Setting the name of Calculator Object as: #userinput[CalcFooBar]
+        #comment[*** Expected test output ***]
+Registry Service Name for ZipCodeServer: #userinput[service9]
+Data File Path: #userinput[src/com/yzong/dsf14/RMIFramework/examples/ZipCodeData.txt]
+Initializing the ZipCodeSever...
+        #comment[*** Expected test output ***]
+        
+## Exit RMI Server; Clean-up Services on RMI Registry
+RMI Server @ 41052 > #userinput[exit]
+#stdout[Unbound service service1 from RMI Registry.]
+#stdout[Unbound service service9 from RMI Registry.]
+#stdout[Done. Goodbye!]
+\end{Verbatim}
+}
+
+\section{Further Work \& Enhancements}
+
+Due to time constraints, although the final product is fully functional, it still lacks many features that are desired in commercial packages (like \emph{Hadoop}), and their implementation difficulties also vary. This section will mention a selected few and discuss the difficulty for implementing them.
+
+\subsection{MapReduce Job Priority}
+
+
+\subsection{Fully Support Hadoop-wise Developer API}
+
+
+\subsection{Elegant RMI Exception Reporting}
+
+
+\subsection{Daemonize MapReduce Framework}
+
+\urlstyle{rm}
+
+\end{document}
