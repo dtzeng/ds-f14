@@ -7,75 +7,80 @@ import java.util.ArrayList;
  * Created by Derek on 11/12/2014.
  */
 public class JobInfo implements Serializable {
+
+    private static final long serialVersionUID = -1099484088749732015L;
     private String user, jobType, input, output, otherArgs, status;
     private int recordStart, recordEnd, jobID;
+    /**
+     * List of Task IDs for pending tasks associated to the job.
+     */
     private ArrayList<Integer> tasks;
 
-    public JobInfo(String user, String jobType, String input, String output, String otherArgs,
-                   String status, int recordStart, int recordEnd, int jobID) {
-        this.user = user;
-        this.jobType = jobType;
-        this.input = input;
-        this.output = output;
-        this.otherArgs = otherArgs;
-        this.status = status;
-        this.recordStart = recordStart;
-        this.recordEnd = recordEnd;
-        this.jobID = jobID;
-        this.tasks = new ArrayList<Integer>();
+    public JobInfo(String user, String jobType, String input, String output,
+	    String otherArgs, String status, int recordStart, int recordEnd,
+	    int jobID) {
+	this.user = user;
+	this.jobType = jobType;
+	this.input = input;
+	this.output = output;
+	this.otherArgs = otherArgs;
+	this.status = status;
+	this.recordStart = recordStart;
+	this.recordEnd = recordEnd;
+	this.jobID = jobID;
+	this.tasks = new ArrayList<Integer>();
     }
 
     public String getUser() {
-        return user;
+	return user;
     }
 
     public String getJobType() {
-        return jobType;
+	return jobType;
     }
 
     public String getInput() {
-        return input;
+	return input;
     }
 
     public String getOutput() {
-        return output;
+	return output;
     }
 
     public String getOtherArgs() {
-        return otherArgs;
+	return otherArgs;
     }
 
     public String getStatus() {
-        return status;
+	return status;
     }
 
     public int getRecordStart() {
-        return recordStart;
+	return recordStart;
     }
 
     public int getRecordEnd() {
-        return recordEnd;
+	return recordEnd;
     }
 
     public int getJobID() {
-        return jobID;
+	return jobID;
     }
 
     public void setStatus(String status) {
-        this.status = status;
+	this.status = status;
     }
 
     public void addTask(Integer taskID) {
-        tasks.add(taskID);
+	tasks.add(taskID);
     }
 
     public void removeTask(Integer taskID) {
-        tasks.remove(taskID);
+	tasks.remove(taskID);
     }
 
     public int numTasks() {
-        return tasks.size();
+	return tasks.size();
     }
-
 
 }

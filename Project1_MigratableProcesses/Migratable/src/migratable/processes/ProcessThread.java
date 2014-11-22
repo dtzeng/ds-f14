@@ -8,23 +8,23 @@ public class ProcessThread {
     Thread thread;
 
     public ProcessThread(MigratableProcess process, Thread thread) {
-        this.process = process;
-        this.thread = thread;
+	this.process = process;
+	this.thread = thread;
     }
 
     public MigratableProcess getProcess() {
-        return process;
+	return process;
     }
 
     public Thread getThread() {
-        return thread;
+	return thread;
     }
 
     public void setProcess(MigratableProcess process) {
-        this.process = process;
+	this.process = process;
     }
 
     public void setThread(Thread thread) {
-        this.thread = thread;
+	this.thread = thread;
     }
 }

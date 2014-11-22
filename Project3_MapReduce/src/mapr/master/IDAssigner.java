@@ -7,10 +7,10 @@ public class IDAssigner {
     private int counter;
 
     public IDAssigner() {
-        counter = 0;
+	counter = 0;
     }
 
     public synchronized int getNextJobID() {
-        return counter++;
+	return counter++;
     }
 }

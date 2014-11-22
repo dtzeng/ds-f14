@@ -12,10 +12,10 @@ public class ChildToProcessResponse implements Serializable {
     private boolean success;
 
     public ChildToProcessResponse(boolean success) {
-        this.success = success;
+	this.success = success;
     }
 
     public boolean getSuccess() {
-        return success;
+	return success;
     }
 }

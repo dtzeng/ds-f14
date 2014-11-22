@@ -6,3 +6,7 @@
 .idea/
 out/
 META-INF/
+/bin/
+.project
+.classpath
+
