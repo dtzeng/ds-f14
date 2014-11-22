@@ -6,7 +6,7 @@ import java.util.AbstractMap;
 import java.util.Map;
 
 /**
- * Used by Mappers to read specific records efficiently by jumping to calculated file offets.
+ * Used by Mappers to read specific records efficiently by jumping to calculated file offsets.
  * 
  * @author Derek Tzeng <dtzeng@andrew.cmu.edu>
  */

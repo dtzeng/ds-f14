@@ -17,7 +17,7 @@ public class GrepSorter extends Sorter {
   }
 
   /**
-   * "Addes up" two integers represented by strings/nulls, where the latter are treated as 0.
+   * "Adds up" two integers represented by strings/nulls, where the latter are treated as 0.
    */
   @Override
   public String combine(String val1, String val2) {

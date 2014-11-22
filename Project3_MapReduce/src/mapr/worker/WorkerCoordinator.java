@@ -149,7 +149,7 @@ public class WorkerCoordinator implements Runnable {
   }
 
   /**
-   * Main entry point for starting worker instane in MapReduce.
+   * Main entry point for starting worker instance in MapReduce.
    * 
    * @param args [<tt>ConfigFilePath</tt>, <tt>WorkerName</tt>]
    */

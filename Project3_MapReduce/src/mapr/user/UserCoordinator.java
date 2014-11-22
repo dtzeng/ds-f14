@@ -36,7 +36,7 @@ public class UserCoordinator implements Runnable {
    */
   int port;
   /**
-   * Hostname for Mapreduce Master.
+   * Hostname for MapReduce Master.
    */
   String masterHost;
   /**

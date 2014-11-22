@@ -222,14 +222,6 @@ public class MasterCoordinatorServeConnection implements Runnable {
         synchronized (lock) {
           oos.writeObject(jobs);
           oos.flush();
-
-          // Remove finished/failed jobs
-          /*
-           * Iterator<Map.Entry<Integer, JobInfo>> iterator = jobs.entrySet().iterator();
-           * while(iterator.hasNext()) { Map.Entry<Integer, JobInfo> next = iterator.next(); String
-           * status = next.getValue().getStatus(); if(status.equals("FINISHED") ||
-           * status.equals("FAILED") || status.contains("RESTARTED")) { iterator.remove(); } }
-           */
         }
       }
       /* User asks for file list */
@@ -758,7 +750,7 @@ public class MasterCoordinatorServeConnection implements Runnable {
         new JobInfo(user, jobType, filename, output, otherArgs, "QUEUED", start, end, jobID);
 
     HashMap<String, TaskInfo> reduces = new HashMap<String, TaskInfo>();
-    /* Partition input file by paritition size. */
+    /* Partition input file by partition size. */
     for (int x = start / partitionSize; x <= end / partitionSize; x++) {
       String worker = files.get(filename).getReplicaLocation(x);
 
