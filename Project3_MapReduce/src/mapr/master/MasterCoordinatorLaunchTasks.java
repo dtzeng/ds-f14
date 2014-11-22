@@ -10,14 +10,34 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Created by Derek on 11/15/2014.
+ * Background utility that dispatches tasks across MapReduce cluster.
+ * 
+ * @author Derek Tzeng <dtzeng@andrew.cmu.edu>
  */
 public class MasterCoordinatorLaunchTasks implements Runnable {
+  /**
+   * Mapping from worker names to (host,port) pairs.
+   */
   ConcurrentHashMap<String, HostPort> workers;
+  /**
+   * Mapping from file names to the replicas on the worker nodes.
+   */
   ConcurrentHashMap<String, FileInfo> files;
+  /**
+   * Mapping from Job ID to Job Information.
+   */
   ConcurrentHashMap<Integer, JobInfo> jobs;
+  /**
+   * Mapping from worker names their running Tasks.
+   */
   ConcurrentHashMap<String, RunningTasks> runningTasks;
+  /**
+   * Mapping from worker names to their queued Tasks.
+   */
   ConcurrentHashMap<String, QueuedTasks> queuedTasks;
+  /**
+   * Keeps track of all the jobs that have been restarted at least once.
+   */
   ArrayList<Integer> restartedJobs;
   IDAssigner jobAssigner, taskAssigner;
   int maxMaps, maxSorts, maxReds, launchFreq, partitionSize;
@@ -46,18 +66,32 @@ public class MasterCoordinatorLaunchTasks implements Runnable {
     this.lock = lock;
   }
 
+  /**
+   * Inserts a job to the <tt>QueuedTasks</tt> of a worker node.
+   * 
+   * @param jobType Type of the job, e.g. `grep` or `wordcount`
+   * @param user User node that created the job
+   * @param filename Input file name
+   * @param start Starting record index
+   * @param end Ending record index
+   * @param output Output file name
+   * @param otherArgs User Additional command-line arguments fed in by the user.
+   * @return JobID for new job
+   */
   private int startJob(String jobType, String user, String filename, int start, int end,
       String output, String otherArgs) {
     FileInfo info = files.get(filename);
     if (info == null || end >= info.getNumRecords())
       return -1;
 
+    /* Obtain next JobID, construct Job Metadata. */
     int jobID = jobAssigner.getNextJobID();
     JobInfo job =
         new JobInfo(user, jobType, filename, output, otherArgs, "QUEUED", start, end, jobID);
 
     HashMap<String, TaskInfo> reduces = new HashMap<String, TaskInfo>();
 
+    /* Partition input file by paritition size. */
     for (int x = start / partitionSize; x <= end / partitionSize; x++) {
       String worker = files.get(filename).getReplicaLocation(x);
 
@@ -68,6 +102,7 @@ public class MasterCoordinatorLaunchTasks implements Runnable {
       int taskEnd =
           (replicaStart <= start && start < replicaEnd) ? end % partitionSize : partitionSize - 1;
 
+      /* Pick intermediate and result file names */
       int mapID = taskAssigner.getNextJobID();
       int sortID = taskAssigner.getNextJobID();
       int reduceID = taskAssigner.getNextJobID();
@@ -77,12 +112,12 @@ public class MasterCoordinatorLaunchTasks implements Runnable {
       String reduceOut =
           worker + "-dfs-root/" + replicaFile + "_reduce" + Integer.toString(reduceID);
 
-      // Create new map and sort for replica
+      /* Create new map task and sort for replica */
       TaskInfo map =
           new TaskInfo("map", mapIn, mapOut, taskStart, taskEnd, mapID, otherArgs, jobID, jobType);
       TaskInfo sort = new TaskInfo("sort", mapOut, sortOut, sortID, mapID, jobID, jobType);
 
-      // Add map and sort tasks, and update reduce dependencies
+      /* Add map and sort tasks, and update reduce dependencies */
       queuedTasks.get(worker).queueMap(map);
       queuedTasks.get(worker).queueSort(mapID, sort);
       job.addTask(mapID);
@@ -99,7 +134,7 @@ public class MasterCoordinatorLaunchTasks implements Runnable {
       }
     }
 
-    // Add all reduces
+    /* Add all reduce tasks */
     Iterator<Map.Entry<String, TaskInfo>> iter = reduces.entrySet().iterator();
     while (iter.hasNext()) {
       Map.Entry<String, TaskInfo> next = iter.next();
@@ -114,13 +149,20 @@ public class MasterCoordinatorLaunchTasks implements Runnable {
     return jobID;
   }
 
+  /**
+   * Delivers and registers a task for a worker.
+   * 
+   * @param worker Worker name
+   * @param task Task metadata
+   * @return <tt>true</tt> iff the task gets delivered successfully
+   */
   public boolean sendTaskToWorker(String worker, TaskInfo task) {
     Socket socket = null;
     ObjectOutputStream oos = null;
     ObjectInputStream ois = null;
     HostPort hp = workers.get(worker);
 
-    // Check if worker failed before
+    /* Check if worker failed before */
     if (hp == null) {
       int oldJobID = task.getSourceJobID();
       if (!restartedJobs.contains(oldJobID)) {
@@ -162,7 +204,7 @@ public class MasterCoordinatorLaunchTasks implements Runnable {
       }
     }
 
-    // Reassign tasks for worker if worker failed during connection
+    /* Reassign tasks for worker if worker failed during connection */
     if (!result) {
       for (FileInfo fileInfo : files.values()) {
         fileInfo.removeWorker(worker);
@@ -176,6 +218,11 @@ public class MasterCoordinatorLaunchTasks implements Runnable {
     return result;
   }
 
+  /**
+   * Re-assigns a job to <i>avoid</i> a certain worker node.
+   * 
+   * @param worker Name for the worker node.
+   */
   private void reassignTasks(String worker) {
     RunningTasks rt = runningTasks.get(worker);
     if (rt == null)
@@ -236,6 +283,9 @@ public class MasterCoordinatorLaunchTasks implements Runnable {
     }
   }
 
+  /**
+   * Entry point for Master Task Dispatcher.
+   */
   @Override
   public void run() {
     while (true) {
@@ -245,6 +295,7 @@ public class MasterCoordinatorLaunchTasks implements Runnable {
         // ignore
       }
 
+      /* Periodically checks for available slots, and assign tasks if needed. */
       synchronized (lock) {
         Iterator<Map.Entry<String, RunningTasks>> iter = runningTasks.entrySet().iterator();
         while (iter.hasNext()) {
@@ -252,7 +303,7 @@ public class MasterCoordinatorLaunchTasks implements Runnable {
           String worker = next.getKey();
           RunningTasks tasks = next.getValue();
 
-          // Launch up to max number of maps
+          /* Launch up to max number of mappers */
           for (int x = 0; x < maxMaps - tasks.numMaps(); x++) {
             if (queuedTasks.get(worker) == null) {
               break;
@@ -289,7 +340,7 @@ public class MasterCoordinatorLaunchTasks implements Runnable {
             }
           }
 
-          // Launch up to max number of sorts
+          /* Launch up to max number of sorters */
           for (int x = 0; x < maxSorts - tasks.numSorts(); x++) {
             if (queuedTasks.get(worker) == null) {
               break;
@@ -325,7 +376,7 @@ public class MasterCoordinatorLaunchTasks implements Runnable {
             }
           }
 
-          // Launch up to max number of reduces
+          /* Launch up to max number of reducers */
           for (int x = 0; x < maxReds - tasks.numReduces(); x++) {
             if (queuedTasks.get(worker) == null) {
               break;

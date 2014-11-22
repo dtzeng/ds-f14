@@ -5,7 +5,7 @@ import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Keeps track of all running Mapper, Sorter, and Reducers.
+ * Keeps track of all running Mapper, Sorter, and Reducers of a worker node.
  * 
  * @author Derek Tzeng <dtzeng@andrew.cmu.edu>
  *

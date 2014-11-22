@@ -22,13 +22,37 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  */
 public class MasterCoordinatorServeConnection implements Runnable {
+  /**
+   * Socket by which Master communicates with workers and users.
+   */
   Socket socket;
+  /**
+   * Mapping from worker names to (host,port) pairs.
+   */
   ConcurrentHashMap<String, HostPort> workers;
+  /**
+   * Mapping from user names to (host,port) pairs.
+   */
   ConcurrentHashMap<String, HostPort> users;
+  /**
+   * Mapping from file names to the replicas on the worker nodes.
+   */
   ConcurrentHashMap<String, FileInfo> files;
+  /**
+   * Mapping from Job ID to Job Information.
+   */
   ConcurrentHashMap<Integer, JobInfo> jobs;
+  /**
+   * Mapping from worker names their running Tasks.
+   */
   ConcurrentHashMap<String, RunningTasks> runningTasks;
+  /**
+   * Mapping from worker names to their queued Tasks.
+   */
   ConcurrentHashMap<String, QueuedTasks> queuedTasks;
+  /**
+   * Keeps track of all the jobs that have been restarted at least once.
+   */
   ArrayList<Integer> restartedJobs;
   IDAssigner jobAssigner, taskAssigner;
   int partitionSize, recordLength, replicationFactor;
@@ -143,6 +167,9 @@ public class MasterCoordinatorServeConnection implements Runnable {
     return true;
   }
 
+  /**
+   * Entry point for master coordinator handler.
+   */
   @Override
   public void run() {
     ObjectOutputStream oos = null;
@@ -151,12 +178,13 @@ public class MasterCoordinatorServeConnection implements Runnable {
       oos = new ObjectOutputStream(socket.getOutputStream());
       ois = new ObjectInputStream(socket.getInputStream());
       String command = ois.readUTF();
+      /* New worker identifies itself */
       if (command.equals("newWorker")) {
         String name = ois.readUTF();
         String host = ois.readUTF();
         int port = ois.readInt();
         HostPort hp = new HostPort(host, port);
-
+        /* If no name conflict, add worker to pool */
         synchronized (lock) {
           if (workers.containsKey(name) || workers.containsValue(hp)) {
             oos.writeBoolean(false);
@@ -167,13 +195,15 @@ public class MasterCoordinatorServeConnection implements Runnable {
             oos.writeBoolean(true);
           }
         }
-
         oos.flush();
-      } else if (command.equals("newUser")) {
+      }
+      /* New user identifies itself */
+      else if (command.equals("newUser")) {
         String name = ois.readUTF();
         String host = ois.readUTF();
         int port = ois.readInt();
         HostPort hp = new HostPort(host, port);
+        /* If user is in the list, add to user pool */
         if (users.containsKey(name) || users.containsValue(hp)) {
           oos.writeBoolean(false);
         } else {
@@ -181,10 +211,14 @@ public class MasterCoordinatorServeConnection implements Runnable {
           oos.writeBoolean(true);
         }
         oos.flush();
-      } else if (command.equals("userQuit")) {
+      }
+      /* User quits */
+      else if (command.equals("userQuit")) {
         String name = ois.readUTF();
         users.remove(name);
-      } else if (command.equals("jobs")) {
+      }
+      /* User asks for job list */
+      else if (command.equals("jobs")) {
         synchronized (lock) {
           oos.writeObject(jobs);
           oos.flush();
@@ -197,10 +231,14 @@ public class MasterCoordinatorServeConnection implements Runnable {
            * status.equals("FAILED") || status.contains("RESTARTED")) { iterator.remove(); } }
            */
         }
-      } else if (command.equals("files")) {
+      }
+      /* User asks for file list */
+      else if (command.equals("files")) {
         oos.writeObject(files);
         oos.flush();
-      } else if (command.equals("upload")) {
+      }
+      /* User uploads file to DFS */
+      else if (command.equals("upload")) {
         String filename = ois.readUTF();
         int fileLen = ois.readInt();
         byte[] contents = new byte[fileLen];
@@ -212,7 +250,9 @@ public class MasterCoordinatorServeConnection implements Runnable {
         }
         oos.writeBoolean(success);
         oos.flush();
-      } else if (command.equals("count")) {
+      }
+      /* User requests a `count` MapReduce Job */
+      else if (command.equals("count")) {
         String user = ois.readUTF();
         String filename = ois.readUTF();
         int start = ois.readInt();
@@ -223,7 +263,9 @@ public class MasterCoordinatorServeConnection implements Runnable {
           oos.writeInt(jobID);
         }
         oos.flush();
-      } else if (command.equals("grep")) {
+      }
+      /* User requests a `grep` MapReduce Job */
+      else if (command.equals("grep")) {
         String user = ois.readUTF();
         String filename = ois.readUTF();
         int start = ois.readInt();
@@ -235,7 +277,9 @@ public class MasterCoordinatorServeConnection implements Runnable {
           oos.writeInt(jobID);
         }
         oos.flush();
-      } else if (command.equals("mapDone")) {
+      }
+      /* Work sends in mapDone notification */
+      else if (command.equals("mapDone")) {
         String workerName = ois.readUTF();
         int taskID = ois.readInt();
         int jobID = ois.readInt();
@@ -251,6 +295,7 @@ public class MasterCoordinatorServeConnection implements Runnable {
             jobs.get(jobID).removeTask(taskID);
           }
 
+          /* Allocate new mapper jobs on free slots. */
           if (runningTasks.get(workerName).numMaps() < maxMaps) {
             while (true) {
               TaskInfo map = queuedTasks.get(workerName).nextMap();
@@ -273,7 +318,9 @@ public class MasterCoordinatorServeConnection implements Runnable {
             }
           }
         }
-      } else if (command.equals("mapFailed")) {
+      }
+      /* Work sends in mapFailed notification */
+      else if (command.equals("mapFailed")) {
         String workerName = ois.readUTF();
         int taskID = ois.readInt();
         int jobID = ois.readInt();
@@ -289,7 +336,7 @@ public class MasterCoordinatorServeConnection implements Runnable {
             jobs.get(jobID).removeTask(taskID);
             jobs.get(jobID).setStatus("FAILED");
           }
-
+          /* Allocate new mapper jobs on free slots. */
           if (runningTasks.get(workerName).numMaps() < maxMaps) {
             while (true) {
               TaskInfo map = queuedTasks.get(workerName).nextMap();
@@ -312,7 +359,9 @@ public class MasterCoordinatorServeConnection implements Runnable {
             }
           }
         }
-      } else if (command.equals("sortDone")) {
+      }
+      /* Work sends in sortDone notification */
+      else if (command.equals("sortDone")) {
         String workerName = ois.readUTF();
         int taskID = ois.readInt();
         int jobID = ois.readInt();
@@ -327,7 +376,7 @@ public class MasterCoordinatorServeConnection implements Runnable {
           if (jobs.get(jobID) != null) {
             jobs.get(jobID).removeTask(taskID);
           }
-
+          /* Allocate new sorter jobs on free slots. */
           if (runningTasks.get(workerName).numSorts() < maxSorts) {
             while (true) {
               TaskInfo sort = queuedTasks.get(workerName).nextSort();
@@ -350,7 +399,9 @@ public class MasterCoordinatorServeConnection implements Runnable {
             }
           }
         }
-      } else if (command.equals("sortFailed")) {
+      }
+      /* Work sends in sortFailed notification */
+      else if (command.equals("sortFailed")) {
         String workerName = ois.readUTF();
         int taskID = ois.readInt();
         int jobID = ois.readInt();
@@ -366,7 +417,7 @@ public class MasterCoordinatorServeConnection implements Runnable {
             jobs.get(jobID).removeTask(taskID);
             jobs.get(jobID).setStatus("FAILED");
           }
-
+          /* Allocate new sorter jobs on free slots. */
           if (runningTasks.get(workerName).numSorts() < maxSorts) {
             while (true) {
               TaskInfo sort = queuedTasks.get(workerName).nextSort();
@@ -390,7 +441,9 @@ public class MasterCoordinatorServeConnection implements Runnable {
           }
         }
 
-      } else if (command.equals("reduceDone")) {
+      }
+      /* Work sends in reduceDone notification */
+      else if (command.equals("reduceDone")) {
         String workerName = ois.readUTF();
         int taskID = ois.readInt();
         int jobID = ois.readInt();
@@ -425,7 +478,7 @@ public class MasterCoordinatorServeConnection implements Runnable {
             jobNo = "job" + Integer.toString(jobs.get(jobID).getJobID());
           }
         }
-
+        /* Write reduce output back to user */
         if (hpUser != null) {
           Socket socketUser = null;
           ObjectOutputStream oosUser = null;
@@ -464,7 +517,7 @@ public class MasterCoordinatorServeConnection implements Runnable {
               && jobs.get(jobID).numTasks() == 0)
             jobs.get(jobID).setStatus("FINISHED");
         }
-
+        /* Allocate new reduce jobs on free slots. */
         synchronized (lock) {
           if (runningTasks.get(workerName).numReduces() < maxReds) {
             while (true) {
@@ -488,7 +541,9 @@ public class MasterCoordinatorServeConnection implements Runnable {
             }
           }
         }
-      } else if (command.equals("reduceFailed")) {
+      }
+      /* Work sends in reduceFailed notification */
+      else if (command.equals("reduceFailed")) {
         String workerName = ois.readUTF();
         int taskID = ois.readInt();
         int jobID = ois.readInt();
@@ -497,13 +552,13 @@ public class MasterCoordinatorServeConnection implements Runnable {
           if (runningTasks.get(workerName) == null) {
             return;
           }
-
           runningTasks.get(workerName).finishedReduce(taskID);
           if (jobs.get(jobID) != null) {
             jobs.get(jobID).removeTask(taskID);
             jobs.get(jobID).setStatus("FAILED");
           }
 
+          /* Allocate new reduce jobs on free slots. */
           if (runningTasks.get(workerName).numReduces() < maxReds) {
             while (true) {
               TaskInfo reduce = queuedTasks.get(workerName).nextReduce();
@@ -544,6 +599,13 @@ public class MasterCoordinatorServeConnection implements Runnable {
     }
   }
 
+  /**
+   * Delivers a task onto some worker node.
+   * 
+   * @param worker Name of worker node
+   * @param task Metadata for task
+   * @return <tt>true</tt> iff the task is sent successfully
+   */
   public boolean sendTaskToWorker(String worker, TaskInfo task) {
     Socket socket = null;
     ObjectOutputStream oos = null;
@@ -592,7 +654,7 @@ public class MasterCoordinatorServeConnection implements Runnable {
       }
     }
 
-    // Reassign tasks for worker if worker failed during connection
+    /* Reassign tasks for worker if worker failed during connection */
     if (!result) {
       for (FileInfo fileInfo : files.values()) {
         fileInfo.removeWorker(worker);
@@ -606,6 +668,11 @@ public class MasterCoordinatorServeConnection implements Runnable {
     return result;
   }
 
+  /**
+   * Re-assigns a job to <i>avoid</i> a certain worker node.
+   * 
+   * @param worker Name for the worker node.
+   */
   private void reassignTasks(String worker) {
     RunningTasks rt = runningTasks.get(worker);
     if (rt == null)
@@ -667,18 +734,31 @@ public class MasterCoordinatorServeConnection implements Runnable {
     }
   }
 
+  /**
+   * Inserts a job to the <tt>QueuedTasks</tt> of a worker node.
+   * 
+   * @param jobType Type of the job, e.g. `grep` or `wordcount`
+   * @param user User node that created the job
+   * @param filename Input file name
+   * @param start Starting record index
+   * @param end Ending record index
+   * @param output Output file name
+   * @param otherArgs User Additional command-line arguments fed in by the user.
+   * @return JobID for new job
+   */
   public int startJob(String jobType, String user, String filename, int start, int end,
       String output, String otherArgs) {
     FileInfo info = files.get(filename);
     if (info == null || end >= info.getNumRecords())
       return -1;
 
+    /* Obtain next JobID, construct Job Metadata. */
     int jobID = jobAssigner.getNextJobID();
     JobInfo job =
         new JobInfo(user, jobType, filename, output, otherArgs, "QUEUED", start, end, jobID);
 
     HashMap<String, TaskInfo> reduces = new HashMap<String, TaskInfo>();
-
+    /* Partition input file by paritition size. */
     for (int x = start / partitionSize; x <= end / partitionSize; x++) {
       String worker = files.get(filename).getReplicaLocation(x);
 
@@ -688,7 +768,7 @@ public class MasterCoordinatorServeConnection implements Runnable {
       int taskStart = (replicaStart <= start && start < replicaEnd) ? start % partitionSize : 0;
       int taskEnd =
           (replicaStart <= start && start < replicaEnd) ? end % partitionSize : partitionSize - 1;
-
+      /* Pick intermediate and result file names */
       int mapID = taskAssigner.getNextJobID();
       int sortID = taskAssigner.getNextJobID();
       int reduceID = taskAssigner.getNextJobID();
@@ -698,12 +778,12 @@ public class MasterCoordinatorServeConnection implements Runnable {
       String reduceOut =
           worker + "-dfs-root/" + replicaFile + "_reduce" + Integer.toString(reduceID);
 
-      // Create new map and sort for replica
+      /* Create new map task and sort for replica */
       TaskInfo map =
           new TaskInfo("map", mapIn, mapOut, taskStart, taskEnd, mapID, otherArgs, jobID, jobType);
       TaskInfo sort = new TaskInfo("sort", mapOut, sortOut, sortID, mapID, jobID, jobType);
 
-      // Add map and sort tasks, and update reduce dependencies
+      /* Add map and sort tasks, and update reduce dependencies */
       queuedTasks.get(worker).queueMap(map);
       queuedTasks.get(worker).queueSort(mapID, sort);
       job.addTask(mapID);
@@ -720,7 +800,7 @@ public class MasterCoordinatorServeConnection implements Runnable {
       }
     }
 
-    // Add all reduces
+    /* Add all reduce tasks */
     Iterator<Map.Entry<String, TaskInfo>> iter = reduces.entrySet().iterator();
     while (iter.hasNext()) {
       Map.Entry<String, TaskInfo> next = iter.next();

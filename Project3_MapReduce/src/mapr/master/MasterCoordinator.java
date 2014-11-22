@@ -111,6 +111,9 @@ public class MasterCoordinator implements Runnable {
     this.taskAssigner = new IDAssigner();
   }
 
+  /**
+   * Prints a human-readable digest of worker lists.
+   */
   public void printWorkers() {
     System.out.format("%15s%30s%n", "Worker", "Host:Port");
     synchronized (lock) {
@@ -121,6 +124,9 @@ public class MasterCoordinator implements Runnable {
     System.out.println();
   }
 
+  /**
+   * Prints a human-readable digest of user lists.
+   */
   public void printUsers() {
     System.out.format("%15s%30s%n", "User", "Host:Port");
     for (String key : users.keySet()) {
@@ -129,6 +135,9 @@ public class MasterCoordinator implements Runnable {
     System.out.println();
   }
 
+  /**
+   * Prints a human-readable digest of file lists on DFS.
+   */
   public void printFiles() {
     System.out.format("%15s%10s%30s%n", "File", "Records", "Replica Locations");
     synchronized (lock) {
@@ -145,6 +154,9 @@ public class MasterCoordinator implements Runnable {
     System.out.println();
   }
 
+  /**
+   * Prints a human-readable digest of job lists running on framework.
+   */
   public void printJobs() {
     System.out.format("%8s%30s%10s%n", "JobID", "Command", "Status");
     synchronized (lock) {
@@ -169,6 +181,9 @@ public class MasterCoordinator implements Runnable {
     System.out.println();
   }
 
+  /**
+   * Prints a human-readable digest of task lists.
+   */
   public void printTasks() {
     System.out.println("Running Tasks:");
     System.out.format("%15s%20s%30s%n", "Worker", "Running Tasks", "Queued Tasks");
@@ -196,6 +211,9 @@ public class MasterCoordinator implements Runnable {
     }
   }
 
+  /**
+   * Prints help message for user of Master CLI.
+   */
   public void printHelp() {
     System.out.println("jobs: See the list of running jobs");
     System.out.println("tasks: See the list of running tasks");
@@ -206,6 +224,9 @@ public class MasterCoordinator implements Runnable {
     System.out.println("shutdown: Shuts down the facility");
   }
 
+  /**
+   * Entry point for Master Coordinator.
+   */
   @Override
   public void run() {
     ServerSocket serverSocket = null;
@@ -239,7 +260,7 @@ public class MasterCoordinator implements Runnable {
       }
     }
 
-    // Check if startup succeeded
+    /* Check if start-up succeeded */
     if (workers.size() == 0) {
       System.out.println("No workers established within timeout. Exiting...");
       if (!serverSocket.isClosed()) {
@@ -268,7 +289,7 @@ public class MasterCoordinator implements Runnable {
             partitionSize, lock);
     new Thread(launcher).start();
 
-    /* Main loop that receives and processes clients requests. */
+    /* Main loop that receives and processes user/worker requests. */
     try {
       serverSocket.setSoTimeout(0);
     } catch (SocketException e) {
@@ -376,7 +397,7 @@ public class MasterCoordinator implements Runnable {
   }
 
   /**
-   * Entry point for the MapReduce master node facility.
+   * Entry point for the MapReduce master CLI facility.
    * 
    * @param args User CLI paramters
    */
@@ -386,7 +407,7 @@ public class MasterCoordinator implements Runnable {
       return;
     }
 
-    // Read config file
+    /* Load config file */
     Properties prop = new Properties();
     try {
       InputStream inputStream = new FileInputStream(args[0]);
@@ -421,7 +442,7 @@ public class MasterCoordinator implements Runnable {
     String checkFailFreq = prop.getProperty("check.failure.frequency");
     String maxPingRetries = prop.getProperty("max.ping.retries");
 
-    // Verify properties
+    /* Verify properties */
     if (masterHost == null) {
       System.out.println("Please specify a 'master.host' in config file.");
       return;
@@ -483,7 +504,7 @@ public class MasterCoordinator implements Runnable {
       return;
     }
 
-    // Start master and wait for workers
+    /* Start up master node coordinator and wait for workers */
     Object lock = new Object();
     MasterCoordinator coordinator =
         new MasterCoordinator(Integer.parseInt(masterPort), Integer.parseInt(startupTimeout),
@@ -511,7 +532,7 @@ public class MasterCoordinator implements Runnable {
       System.out.println("All workers connected, starting facility");
     }
 
-    // Start command line
+    /* Worker handshakes finished. Start up Master CLI. */
     Scanner scan = new Scanner(System.in);
     while (true) {
       System.out.print("master@" + masterPort + " > ");
