@@ -11,17 +11,44 @@ import mapr.master.TaskInfo;
 import mapr.tasks.Task;
 
 /**
- * Created by Derek on 11/17/2014.
+ * Worker thread wrapper for running a MapReduce task and report status to Master.
+ * 
+ * @author Derek Tzeng <dtzeng@andrew.cmu.edu>
  */
 public class TaskThreadRunner implements Runnable {
+  /**
+   * Task thread and metatada.
+   */
   TaskThread taskThread;
+  /**
+   * Task metadata.
+   */
   TaskInfo info;
+  /**
+   * Task thread.
+   */
   Thread thread;
+  /**
+   * Task configuration and properties.
+   */
   Task task;
+  /**
+   * Hostname for master node.
+   */
   String masterHost;
+  /**
+   * Port number for master node.
+   */
   int masterPort;
+  /**
+   * Name of current worker node.
+   */
   String workerName;
+  /**
+   * Mapping from Task IDs to Task Threads.
+   */
   ConcurrentHashMap<Integer, TaskThread> tasks;
+
 
   public TaskThreadRunner(TaskThread taskThread, Task task, String masterHost, int masterPort,
       String workerName, ConcurrentHashMap<Integer, TaskThread> tasks) {
@@ -35,6 +62,11 @@ public class TaskThreadRunner implements Runnable {
     this.tasks = tasks;
   }
 
+  /**
+   * Notify Master of the job's completion status.
+   * 
+   * @param success <tt>true</tt> iff the task completed successfully.
+   */
   public void notifyMaster(String success) {
     Socket socket = null;
     ObjectOutputStream oos = null;
@@ -48,6 +80,7 @@ public class TaskThreadRunner implements Runnable {
       oos.writeInt(info.getTaskID());
       oos.writeInt(info.getSourceJobID());
 
+      /* If a Reducer completes, write result to master node. */
       if (info.getTaskType().equals("reduce") && success.equals("Done")) {
         byte[] contents;
         int fileLen = 0;
@@ -83,6 +116,9 @@ public class TaskThreadRunner implements Runnable {
     }
   }
 
+  /**
+   * Entry point for a task thread <i>wrapper</i>.
+   */
   @Override
   public void run() {
     int taskID = info.getTaskID();

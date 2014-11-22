@@ -18,15 +18,39 @@ import mapr.master.TaskInfo;
 import mapr.tasks.Task;
 
 /**
- * Created by Derek on 11/12/2014.
+ * Runnable class that handles all connection requests to Worker node.
+ * 
+ * @author Derek Tzeng <dtzeng@andrew.cmu.edu>
+ *
  */
 public class WorkerCoordinatorServeConnection implements Runnable {
+  /**
+   * Socket by which Worker communicates with Master.
+   */
   Socket socket;
+  /**
+   * DFS working directory on the user node.
+   */
   String dfsDir;
+  /**
+   * Hostname of Master node.
+   */
   String masterHost;
+  /**
+   * Port number of Msater node.
+   */
   int masterPort;
+  /**
+   * Maximum number of records (lines) in a partition.
+   */
   int recordLength;
+  /**
+   * Name of current worker node.
+   */
   String workerName;
+  /**
+   * Mapping from TaskIDs to TaskThreads.
+   */
   ConcurrentHashMap<Integer, TaskThread> tasks;
 
   public WorkerCoordinatorServeConnection(Socket socket, String dfsDir, String masterHost,
@@ -97,6 +121,11 @@ public class WorkerCoordinatorServeConnection implements Runnable {
     return true;
   }
 
+  /**
+   * Helper method for deleting an entire directory recursively.
+   * 
+   * @param dir Path name to directory.
+   */
   public void deleteDir(File dir) {
     File[] files = dir.listFiles();
     if (files != null) {
@@ -110,6 +139,9 @@ public class WorkerCoordinatorServeConnection implements Runnable {
     dir.delete();
   }
 
+  /**
+   * Entry point for worker coordinator server.
+   */
   @Override
   public void run() {
     ObjectOutputStream oos = null;
@@ -118,6 +150,7 @@ public class WorkerCoordinatorServeConnection implements Runnable {
       oos = new ObjectOutputStream(socket.getOutputStream());
       ois = new ObjectInputStream(socket.getInputStream());
       String command = ois.readUTF();
+      /* Worker requested to store a partition of file for DFS */
       if (command.equals("newReplica")) {
         String filename = ois.readUTF();
         int fileLen = ois.readInt();
@@ -129,15 +162,21 @@ public class WorkerCoordinatorServeConnection implements Runnable {
 
         oos.writeBoolean(true);
         oos.flush();
-      } else if (command.equals("newTask")) {
+      }
+      /* Worker requested to create a new task. */
+      else if (command.equals("newTask")) {
         TaskInfo task = (TaskInfo) ois.readObject();
         boolean success = executeTask(task);
         oos.writeBoolean(success);
         oos.flush();
-      } else if (command.equals("ping")) {
+      }
+      /* Worker responds to handshake request. */
+      else if (command.equals("ping")) {
         oos.writeUTF("pong");
         oos.flush();
-      } else if (command.equals("shutdown")) {
+      }
+      /* Worker requested to shut down. */
+      else if (command.equals("shutdown")) {
         System.out.println("Received shutdown. Exiting...");
         deleteDir(new File(dfsDir));
         System.exit(-1);

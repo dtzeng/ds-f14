@@ -4,13 +4,43 @@ import java.io.Serializable;
 import java.util.ArrayList;
 
 /**
- * Created by Derek on 11/12/2014.
+ * Encapsulates all metadata of a Job from MapReduce user, including input-/output-file,
+ * command-line argument, job status, JobID, etc.
+ * 
+ * @author Derek Tzeng <dtzeng@andrew.cmu.edu>
+ *
  */
 public class JobInfo implements Serializable {
 
   private static final long serialVersionUID = -1099484088749732015L;
-  private String user, jobType, input, output, otherArgs, status;
-  private int recordStart, recordEnd, jobID;
+  /**
+   * Name of user node that started the job.
+   */
+  private String user;
+  /**
+   * Type of the job, e.g. `grep` or `wordcount`.
+   */
+  private String jobType;
+  /**
+   * Path to the input-/output-files.
+   */
+  private String input, output;
+  /**
+   * Additional command-line arguments fed in by the user.
+   */
+  private String otherArgs;
+  /**
+   * Human-readable status message for the job.
+   */
+  private String status;
+  /**
+   * The range for the current job to operate on from the input file.
+   */
+  private int recordStart, recordEnd;
+  /**
+   * Unique JobID associated to the current job.
+   */
+  private int jobID;
   /**
    * List of Task IDs for pending tasks associated to the job.
    */

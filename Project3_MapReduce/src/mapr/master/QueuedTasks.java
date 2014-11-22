@@ -18,7 +18,13 @@ public class QueuedTasks {
    * Mapper tasks that can be started at any time.
    */
   ConcurrentLinkedQueue<TaskInfo> pendingMaps;
+  /**
+   * Sorter tasks that can be started at any time.
+   */
   ConcurrentLinkedQueue<TaskInfo> pendingSorts;
+  /**
+   * Reducer tasks that can be started at any time.
+   */
   ConcurrentLinkedQueue<TaskInfo> pendingReduces;
   /**
    * Sorting tasks that are pending on certain dependencies.
@@ -38,14 +44,29 @@ public class QueuedTasks {
     this.dependentReduces = new ConcurrentHashMap<Integer, TaskInfo>();
   }
 
+  /**
+   * Adds a Mapper task in the pending list.
+   * 
+   * @param task Task to be added into pending list.
+   */
   public void queueMap(TaskInfo task) {
     pendingMaps.add(task);
   }
 
+  /**
+   * Adds a Sorter task in the pending list.
+   * 
+   * @param task Task to be added into pending list.
+   */
   public void queueSort(Integer dependency, TaskInfo task) {
     dependentSorts.put(dependency, task);
   }
 
+  /**
+   * Adds a Reducer task in the pending list.
+   * 
+   * @param task Task to be added into pending list.
+   */
   public void queueReduce(TaskInfo task) {
     synchronized (dependentReduces) {
       List<Integer> dependencies = task.getTaskDependencies();
@@ -55,6 +76,11 @@ public class QueuedTasks {
     }
   }
 
+  /**
+   * Upon finishing a Mapper, remove it from the dependency list of all Sorters.
+   * 
+   * @param id TaskID for the finished Mapper
+   */
   public void finishedMap(Integer id) {
     synchronized (dependentSorts) {
       TaskInfo sort = dependentSorts.remove(id);
@@ -64,6 +90,11 @@ public class QueuedTasks {
     }
   }
 
+  /**
+   * Upon finishing a Sorter, remove it from the dependency list of all Reducers.
+   * 
+   * @param id TaskID for the finished Sorter
+   */
   public void finishedSort(Integer id) {
     synchronized (dependentReduces) {
       TaskInfo reduce = dependentReduces.remove(id);
@@ -73,6 +104,11 @@ public class QueuedTasks {
     }
   }
 
+  /**
+   * Return the next Mapper tasks in the waiting list.
+   * 
+   * @return Next pending Mapper task.
+   */
   public TaskInfo nextMap() {
     TaskInfo result = null;
     try {
@@ -82,6 +118,11 @@ public class QueuedTasks {
     return result;
   }
 
+  /**
+   * Return the next Sorter tasks in the waiting list.
+   * 
+   * @return Next pending Sorter task.
+   */
   public TaskInfo nextSort() {
     TaskInfo result = null;
     try {
@@ -91,6 +132,11 @@ public class QueuedTasks {
     return result;
   }
 
+  /**
+   * Return the next Reducer tasks in the waiting list.
+   * 
+   * @return Next pending Reducer task.
+   */
   public TaskInfo nextReduce() {
     TaskInfo result = null;
     try {
@@ -100,6 +146,9 @@ public class QueuedTasks {
     return result;
   }
 
+  /**
+   * Returns a human-readable digest of task statuses.
+   */
   public String toString() {
     String result = "";
 

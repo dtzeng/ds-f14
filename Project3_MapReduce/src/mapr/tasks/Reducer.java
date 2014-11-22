@@ -17,9 +17,21 @@ import mapr.io.KVWriter;
  *
  */
 public abstract class Reducer implements Task {
+  /**
+   * List of input file names for reducer to consume.
+   */
   List<String> inputFiles;
+  /**
+   * Writer of final K-V pairs.
+   */
   KVWriter writer;
+  /**
+   * Other command-line arguments given by user.
+   */
   String otherArgs;
+  /**
+   * <tt>true</tt> if the task has succeeded.
+   */
   boolean success;
 
   public Reducer(List<String> inputFiles, String outputFile, String otherArgs)
@@ -38,10 +50,23 @@ public abstract class Reducer implements Task {
     return success;
   }
 
+  /**
+   * Writes a (key,value) pair to the defined output file.
+   * 
+   * @param key Key to write
+   * @param value Value to write
+   * @throws IOException File I/O Exception
+   */
   public void emit(String key, String value) throws IOException {
     writer.writeKV(key, value);
   }
 
+  /**
+   * Returns the index of (key,value) pair with "smallest" key value.
+   * 
+   * @param list List of (key,value) pairs to consider
+   * @return Index to "smallest" key
+   */
   private int minIndex(List<Map.Entry<String, String>> list) {
     int minIndex = 0;
     Map.Entry<String, String> minKV = list.get(0);
@@ -54,10 +79,14 @@ public abstract class Reducer implements Task {
     return minIndex;
   }
 
+  /**
+   * Entry point for a reducer task.
+   */
   @Override
   public void run() {
     List<KVReader> readers = new ArrayList<KVReader>();
     try {
+      /* Create a Key-Value Reader for each data source */
       List<Map.Entry<String, String>> kvs = new ArrayList<Map.Entry<String, String>>();
       for (int x = 0; x < inputFiles.size(); x++) {
         KVReader reader = new KVReader(inputFiles.get(x));
@@ -68,11 +97,11 @@ public abstract class Reducer implements Task {
         }
       }
 
+      /* Keep aggregating (key,value) pairs until we complete. */
       while (readers.size() != 0) {
         int minIndex = minIndex(kvs);
         Map.Entry<String, String> minKV = kvs.get(minIndex);
-
-        // Replace minKV
+        /* Replace the Key-Value Reader with minIndex. */
         Map.Entry<String, String> replacement = readers.get(minIndex).readNextKV();
         if (replacement == null) {
           readers.remove(minIndex);
@@ -81,7 +110,7 @@ public abstract class Reducer implements Task {
           kvs.set(minIndex, replacement);
         }
 
-        // Aggregate same keys
+        /* Aggregate same keys */
         ArrayList<String> groupMinKey = new ArrayList<String>();
         groupMinKey.add(minKV.getValue());
 
@@ -96,7 +125,7 @@ public abstract class Reducer implements Task {
           }
         }
 
-        // Delete completed files
+        /* Delete completed files */
         Iterator<KVReader> readerIterator = readers.iterator();
         Iterator<Map.Entry<String, String>> kvsIterator = kvs.iterator();
         while (kvsIterator.hasNext()) {
@@ -122,7 +151,21 @@ public abstract class Reducer implements Task {
     }
   }
 
+  /**
+   * User's rule for reducing a list of values associated with a same key.
+   * 
+   * @param key Shared key value
+   * @param values Iterator of values with <tt>key</tt>
+   */
   public abstract void reduce(String key, Iterator<String> values) throws Exception;
 
+  /**
+   * Customizable comparator between two Strings.
+   * 
+   * @param key1 First string
+   * @param key2 Second string
+   * @return negative, zero, or positive iff first string is smaller than, equal to, or greater than
+   *         the second, respectively.
+   */
   public abstract int compareTo(String key1, String key2);
 }

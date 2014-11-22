@@ -8,7 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Runnable class with the entry point for the Master node in MapReduce cluster. Waits for workers
- * to become available,
+ * to become available, and initialize task lists for them.
  * 
  * @author Derek Tzeng <dtzeng@andrew.cmu.edu>
  *
@@ -35,6 +35,7 @@ public class MasterCoordinatorStartup implements Runnable {
     try {
       oos = new ObjectOutputStream(socket.getOutputStream());
       ois = new ObjectInputStream(socket.getInputStream());
+      /* Register a new worker machine */
       if (ois.readUTF().equals("newWorker")) {
         String name = ois.readUTF();
         String host = ois.readUTF();

@@ -14,11 +14,38 @@ import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Created by Derek on 11/12/2014.
+ * MapReduce worker command-line interface.
+ * 
+ * @author Derek Tzeng <dtzeng@andrew.cmu.edu>
  */
 public class WorkerCoordinator implements Runnable {
-  String name, host, dfsDir, masterHost;
-  int port, masterPort, recordLength;
+  /**
+   * Name and Host of worker.
+   */
+  String name, host;
+  /**
+   * Port number of worker.
+   */
+  int port;
+  /**
+   * Local working directory of DFS.
+   */
+  String dfsDir;
+  /**
+   * Host name for Master node.
+   */
+  String masterHost;
+  /**
+   * Port number of master node.
+   */
+  int masterPort;
+  /**
+   * Maximum number of records (lines) in a partition.
+   */
+  int recordLength;
+  /**
+   * Mapping from TaskIDs to TaskThreads.
+   */
   ConcurrentHashMap<Integer, TaskThread> tasks;
 
   public WorkerCoordinator(String name, String host, int port, String masterHost, int masterPort,
@@ -37,6 +64,11 @@ public class WorkerCoordinator implements Runnable {
     dir.mkdir();
   }
 
+  /**
+   * Removes a directory recursively.
+   * 
+   * @param dir Path to the directory
+   */
   public void deleteDir(File dir) {
     File[] files = dir.listFiles();
     if (files != null) {
@@ -50,6 +82,11 @@ public class WorkerCoordinator implements Runnable {
     dir.delete();
   }
 
+  /**
+   * Initial handshake with Master node to show existence.
+   * 
+   * @return <tt>true</tt> iff handshake succeeded.
+   */
   public boolean notifyMaster() {
     Socket socket = null;
     ObjectOutputStream oos = null;
@@ -83,6 +120,9 @@ public class WorkerCoordinator implements Runnable {
     return result;
   }
 
+  /**
+   * Entry point for Worker Coordinator.
+   */
   @Override
   public void run() {
     ServerSocket serverSocket = null;
@@ -93,6 +133,7 @@ public class WorkerCoordinator implements Runnable {
       System.exit(-1);
     }
 
+    /* Handles requests from Master one per thread */
     while (true) {
       Socket clientSocket = null;
       try {
@@ -107,13 +148,18 @@ public class WorkerCoordinator implements Runnable {
     }
   }
 
+  /**
+   * Main entry point for starting worker instane in MapReduce.
+   * 
+   * @param args [<tt>ConfigFilePath</tt>, <tt>WorkerName</tt>]
+   */
   public static void main(String[] args) {
     if (args.length < 2) {
       System.out.println("Please provide a config file and worker name.");
       return;
     }
 
-    // Read config file
+    /* Load config file */
     Properties prop = new Properties();
     try {
       InputStream inputStream = new FileInputStream(args[0]);
@@ -137,7 +183,7 @@ public class WorkerCoordinator implements Runnable {
     String masterPort = prop.getProperty("master.port");
     String recordLength = prop.getProperty("record.length");
 
-    // Verify properties
+    /* Verify properties */
     if (workerHost == null) {
       System.out.println("Please specify a '" + args[1] + ".host' in config file.");
       return;

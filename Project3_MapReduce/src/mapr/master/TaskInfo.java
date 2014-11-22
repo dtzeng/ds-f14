@@ -22,7 +22,19 @@ public class TaskInfo implements Serializable {
    */
   List<String> filenames;
 
-  // New map
+  /**
+   * Constructor used for new Mapper tasks.
+   * 
+   * @param taskType `mapper`
+   * @param input Input file name
+   * @param output Output file name
+   * @param recordStart Starting point of input file to map
+   * @param recordEnd End point of input file to map
+   * @param taskID Unique TaskID
+   * @param otherArgs Extra user arguments
+   * @param sourceJobID JobID for Mapper task
+   * @param jobType Class name of MapReduce job
+   */
   public TaskInfo(String taskType, String input, String output, int recordStart, int recordEnd,
       int taskID, String otherArgs, int sourceJobID, String jobType) {
     this.taskType = taskType;
@@ -37,7 +49,17 @@ public class TaskInfo implements Serializable {
     this.taskDependencies = Collections.synchronizedList(new ArrayList<Integer>());
   }
 
-  // New sort
+  /**
+   * Constructor used for new Sorter tasks.
+   * 
+   * @param taskType `sorter`
+   * @param input Input file name
+   * @param output Output file name
+   * @param taskID Unique TaskID
+   * @param dependency TaskID that sorter depends on before starting
+   * @param sourceJobID JobID for Mapper task
+   * @param jobType Class name of MapReduce job
+   */
   public TaskInfo(String taskType, String input, String output, int taskID, int dependency,
       int sourceJobID, String jobType) {
     this.taskType = taskType;
@@ -50,7 +72,15 @@ public class TaskInfo implements Serializable {
     this.taskDependencies.add(dependency);
   }
 
-  // New reduce
+  /**
+   * Constructor used for new Reduce tasks.
+   * 
+   * @param taskType `reduce`
+   * @param output Output file name
+   * @param taskID Unique TaskID
+   * @param sourceJobID JobID for Mapper task
+   * @param jobType Class name of MapReduce job
+   */
   public TaskInfo(String taskType, String output, int taskID, int sourceJobID, String jobType) {
     this.taskType = taskType;
     this.output = output;

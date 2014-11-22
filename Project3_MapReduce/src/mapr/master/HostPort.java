@@ -3,12 +3,21 @@ package mapr.master;
 import java.io.Serializable;
 
 /**
- * Created by Derek on 11/12/2014.
+ * Encapsulates a <tt>(hostname, portnum)</tt> pair for any component of MapReduce framework.
+ * 
+ * @author Derek Tzeng <dtzeng@andrew.cmu.edu>
+ *
  */
 public class HostPort implements Serializable {
 
   private static final long serialVersionUID = -6082476923519403699L;
+  /**
+   * Hostname of the node.
+   */
   String host;
+  /**
+   * Port number for contacting the node.
+   */
   int port;
 
   public HostPort(String host, int port) {

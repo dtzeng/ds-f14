@@ -16,9 +16,21 @@ import mapr.io.KVWriter;
  *
  */
 public abstract class Sorter implements Task {
+  /**
+   * Reader of intermediate K-V pairs.
+   */
   KVReader reader;
+  /**
+   * Writer of K-V pairs to feed to reducer.
+   */
   KVWriter writer;
+  /**
+   * Other command-line arguments given by user.
+   */
   String otherArgs;
+  /**
+   * <tt>true</tt> if the task has succeeded.
+   */
   boolean success;
 
   public Sorter(String inputFile, String outputFile, String otherArgs) throws FileNotFoundException {
@@ -36,15 +48,21 @@ public abstract class Sorter implements Task {
     return success;
   }
 
-  private void emit(String key, String value) throws IOException {
-    writer.writeKV(key, value);
-  }
-
+  /**
+   * Merges a new key-value pair with the current accumulator of final key-value pairs.
+   * 
+   * @param sorted <tt>TreeMap</tt> as accumulator for the final (key,value) mapping.
+   * @param key New key to merge.
+   * @param value New value to merge.
+   */
   private void add(TreeMap<String, String> sorted, String key, String value) {
     String prevVal = sorted.get(key);
     sorted.put(key, combine(prevVal, value));
   }
 
+  /**
+   * Entry point for a sorter task.
+   */
   @Override
   public void run() {
     try {
@@ -55,13 +73,14 @@ public abstract class Sorter implements Task {
         }
       };
 
+      /* Add intermediate k-v pairs into final k-v pairs by merging. */
       TreeMap<String, String> sorted = new TreeMap<String, String>(comparator);
-
       Map.Entry<String, String> entry = null;
       while ((entry = reader.readNextKV()) != null) {
         add(sorted, entry.getKey(), entry.getValue());
       }
 
+      /* Write final k-v mapping to output file. */
       for (Map.Entry<String, String> kv : sorted.entrySet()) {
         writer.writeKV(kv.getKey(), kv.getValue());
       }
@@ -74,7 +93,22 @@ public abstract class Sorter implements Task {
     }
   }
 
+  /**
+   * User's rule for combining two values with the same key
+   * 
+   * @param val1 Previous value
+   * @param val2 New value to merge in
+   * @return Combined value
+   */
   public abstract String combine(String val1, String val2);
 
+  /**
+   * Customizable comparator between two Strings.
+   * 
+   * @param key1 First string
+   * @param key2 Second string
+   * @return negative, zero, or positive iff first string is smaller than, equal to, or greater than
+   *         the second, respectively.
+   */
   public abstract int compareTo(String key1, String key2);
 }

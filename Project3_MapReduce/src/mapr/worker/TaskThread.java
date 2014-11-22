@@ -3,10 +3,18 @@ package mapr.worker;
 import mapr.master.TaskInfo;
 
 /**
- * Created by Derek on 11/16/2014.
+ * Encapsulates a Task thread along with its metadata.
+ * 
+ * @author Derek Tzeng <dtzeng@andrew.cmu.edu>
  */
 public class TaskThread {
+  /**
+   * Metadata of a task.
+   */
   TaskInfo info;
+  /**
+   * Actual thread of the task.
+   */
   Thread thread;
 
   public TaskThread(TaskInfo info, Thread thread) {

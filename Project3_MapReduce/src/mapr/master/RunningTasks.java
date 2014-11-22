@@ -5,7 +5,10 @@ import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Created by Derek on 11/13/2014.
+ * Keeps track of all running Mapper, Sorter, and Reducers.
+ * 
+ * @author Derek Tzeng <dtzeng@andrew.cmu.edu>
+ *
  */
 public class RunningTasks implements Serializable {
 
@@ -32,6 +35,11 @@ public class RunningTasks implements Serializable {
     reduces.put(taskID, task);
   }
 
+  /**
+   * Adds a task as <i>Running</i>.
+   * 
+   * @param task Metadata for the task to be added.
+   */
   public void addTask(TaskInfo task) {
     if (task.getTaskType().equals("map"))
       addMap(task.getTaskID(), task);
@@ -77,6 +85,9 @@ public class RunningTasks implements Serializable {
     return reduces;
   }
 
+  /**
+   * Displays a human-readable summary of all running MapReduce tasks.
+   */
   public String toString() {
     String result = "";
     Iterator<TaskInfo> mapIter = maps.values().iterator();

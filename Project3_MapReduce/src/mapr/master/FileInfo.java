@@ -8,7 +8,11 @@ import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
- * Created by Derek on 11/12/2014.
+ * Encapsulates all metadata (excluding name) of a file on DFS, including its replica locations,
+ * partitioning rules, etc.
+ * 
+ * @author Derek Tzeng <dtzeng@andrew.cmu.edu>
+ *
  */
 public class FileInfo implements Serializable {
 
@@ -22,10 +26,16 @@ public class FileInfo implements Serializable {
    */
   int numPartitions;
   /**
-   * Number of records (lines) of the files.
+   * Number of records (lines) of the file.
    */
   int numRecords;
 
+  /**
+   * Initializes a <tt>FileInfo</tt> with certain number of partitions (chunks) and records (lines).
+   * 
+   * @param numPartitions Numbre of paritions of the file.
+   * @param numRecords Number of line of the file.
+   */
   public FileInfo(int numPartitions, int numRecords) {
     partitions =
         Collections.synchronizedList(new ArrayList<ConcurrentLinkedQueue<String>>(numPartitions));
@@ -44,6 +54,12 @@ public class FileInfo implements Serializable {
     return numRecords;
   }
 
+  /**
+   * Looks up a specific partition of the file on DFS.
+   * 
+   * @param partition Parition ID to request.
+   * @return Name of some worker that contains the requested partition.
+   */
   public String getReplicaLocation(int partition) {
     ConcurrentLinkedQueue<String> replicaLocations = partitions.get(partition);
     String location = replicaLocations.remove();
@@ -51,20 +67,40 @@ public class FileInfo implements Serializable {
     return location;
   }
 
+  /**
+   * Adds to the record that some specific worker contains a certain parition of file.
+   * 
+   * @param partition Parition ID that the Worker contains.
+   * @param worker Name of the Worker node in concern.
+   */
   public void addReplicaLocation(int partition, String worker) {
     partitions.get(partition).add(worker);
   }
 
+  /**
+   * Remove from the record that some specific worker contains a certain parition of file.
+   * 
+   * @param partition Parition ID that the Worker <i>no longer</i> contains.
+   * @param workerName of the Worker node in concern.
+   */
   public void removeReplicaLocation(int partition, String worker) {
     partitions.get(partition).remove(worker);
   }
 
+  /**
+   * Removes and cleans up a worker node.
+   * 
+   * @param worker Name for the worker node to remove.
+   */
   public void removeWorker(String worker) {
     for (int x = 0; x < numPartitions; x++) {
       removeReplicaLocation(x, worker);
     }
   }
 
+  /**
+   * Convenient method to represent the replica information of a file in a String format.
+   */
   public String toString() {
     String result = "";
     Iterator<ConcurrentLinkedQueue<String>> iter = partitions.iterator();

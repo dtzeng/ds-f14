@@ -9,6 +9,10 @@ public class Timer implements Runnable {
   volatile boolean done;
   int seconds;
 
+  /**
+   * Creates a Timer object that times out after <tt>seconds</tt>.
+   * @param seconds
+   */
   public Timer(int seconds) {
     this.done = false;
     this.seconds = seconds;

@@ -21,14 +21,35 @@ import mapr.master.FileInfo;
 import mapr.master.JobInfo;
 
 /**
- * Created by Derek on 11/12/2014.
+ * Runnable entry point for <i>user</i> command-line interface for DFS and MapReduce.
+ * 
+ * @author Derek Tzeng <dtzeng@andrew.cmu.edu>
+ *
  */
 public class UserCoordinator implements Runnable {
+  /**
+   * User name, host name, and DFS working directory for the user.
+   */
   String name, host, dfsRoot;
+  /**
+   * Port number for the user endpoint.
+   */
   int port;
+  /**
+   * Hostname for Mapreduce Master.
+   */
   String masterHost;
+  /**
+   * Port number for MapReduce Master.
+   */
   int masterPort;
+  /**
+   * Maximal number of records (lines) per partition.
+   */
   int partitionSize;
+  /**
+   * Helper string buffer to signal if the user is still connected to the cluster.
+   */
   StringBuilder disconnect;
 
   public UserCoordinator(String name, String host, int port, String dfsRoot, String masterHost,
@@ -38,6 +59,7 @@ public class UserCoordinator implements Runnable {
     this.port = port;
     this.dfsRoot = dfsRoot;
 
+    /* Create an empty working directory at given path. */
     File dir = new File(dfsRoot);
     deleteDir(dir);
     dir.mkdir();
@@ -48,6 +70,11 @@ public class UserCoordinator implements Runnable {
     this.disconnect = new StringBuilder("");
   }
 
+  /**
+   * Helper method for deleting an entire directory recursively.
+   * 
+   * @param dir Path name to directory.
+   */
   public void deleteDir(File dir) {
     File[] files = dir.listFiles();
     if (files != null) {
@@ -99,8 +126,12 @@ public class UserCoordinator implements Runnable {
     return result;
   }
 
+  /**
+   * Entry point for MapReduce user endpoint daemon.
+   */
   @Override
   public void run() {
+    /* Listen to given user port. */
     ServerSocket serverSocket = null;
     try {
       serverSocket = new ServerSocket(port);
@@ -109,6 +140,7 @@ public class UserCoordinator implements Runnable {
       System.exit(-1);
     }
 
+    /* Handles each socket activity with a new thread. */
     while (true) {
       Socket clientSocket = null;
       try {
@@ -120,6 +152,9 @@ public class UserCoordinator implements Runnable {
     }
   }
 
+  /**
+   * Prints out all available commands and their usage.
+   */
   public void printHelp() {
     System.out.println("jobs: See the list of running jobs");
     System.out.println("files: List the filenames on the DFS");
@@ -138,6 +173,12 @@ public class UserCoordinator implements Runnable {
     System.out.println("quit: Quits this user");
   }
 
+  /**
+   * Parses and executes user commands on User CLI.
+   * 
+   * @param cmd User command on the CLI.
+   * @return <tt>true</tt> if the input command is well-formed and completed successfully.
+   */
   public boolean parseCommand(String cmd) {
     if (cmd == null) {
       return false;
@@ -147,10 +188,13 @@ public class UserCoordinator implements Runnable {
 
     if (cmd.equals("") || splits.length == 0) {
       return false;
-    } else if (splits[0].equals("jobs")) {
+    }
+    /* User requests list of running jobs. */
+    else if (splits[0].equals("jobs")) {
       Socket socket = null;
       ObjectOutputStream oos = null;
       ObjectInputStream ois = null;
+      /* Request job list from Master */
       try {
         socket = new Socket(masterHost, masterPort);
         oos = new ObjectOutputStream(socket.getOutputStream());
@@ -160,6 +204,7 @@ public class UserCoordinator implements Runnable {
         ConcurrentHashMap<Integer, JobInfo> jobs =
             (ConcurrentHashMap<Integer, JobInfo>) ois.readObject();
 
+        /* Format the response from Master */
         System.out.format("%8s%30s%10s%n", "JobID", "Command", "Status");
         for (Map.Entry<Integer, JobInfo> entry : jobs.entrySet()) {
           String id = Integer.toString(entry.getKey());
@@ -185,7 +230,9 @@ public class UserCoordinator implements Runnable {
           // ignore
         }
       }
-    } else if (splits[0].equals("files")) {
+    }
+    /* User requires list of filenames on DFS */
+    else if (splits[0].equals("files")) {
       Socket socket = null;
       ObjectOutputStream oos = null;
       ObjectInputStream ois = null;
@@ -224,12 +271,15 @@ public class UserCoordinator implements Runnable {
           // ignore
         }
       }
-    } else if (splits[0].equals("upload")) {
+    }
+    /* User uploads local file to DFS */
+    else if (splits[0].equals("upload")) {
       if (splits.length < 2) {
         System.out.println("Not enough arguments. Usage: upload <filename>");
         return false;
       }
 
+      /* Obtain the file content */
       byte[] contents;
       int fileLen = 0;
       RandomAccessFile file = null;
@@ -255,6 +305,7 @@ public class UserCoordinator implements Runnable {
         }
       }
 
+      /* Submit the request to Master node */
       Socket socket = null;
       ObjectOutputStream oos = null;
       ObjectInputStream ois = null;
@@ -290,7 +341,7 @@ public class UserCoordinator implements Runnable {
         }
       }
     }
-    /* User attempts to re-start with Master node. */
+    /* User attempts to re-establish connection with Master node. */
     else if (splits[0].equals("reconnect")) {
       if (disconnect.length() == 0) {
         System.out.println("Already connected to master.");
@@ -302,7 +353,9 @@ public class UserCoordinator implements Runnable {
           disconnect.setLength(0);
         }
       }
-    } else if (splits[0].equals("count")) {
+    }
+    /* User runs the `count` demo MapReduce job */
+    else if (splits[0].equals("count")) {
       if (splits.length < 5) {
         System.out.println("Not enough arguments. Usage: count <input> <start> <end> <output>");
         return false;
@@ -360,7 +413,9 @@ public class UserCoordinator implements Runnable {
           // ignore
         }
       }
-    } else if (splits[0].equals("grep")) {
+    }
+    /* User runs the `grep` demo MapReduce job */
+    else if (splits[0].equals("grep")) {
       if (splits.length < 6) {
         System.out
             .println("Not enough arguments. Usage: grep <input> <start> <end> <output> <match>");
@@ -421,12 +476,17 @@ public class UserCoordinator implements Runnable {
           // ignore
         }
       }
-    } else if (splits[0].equals("help")) {
+    }
+    /* User requests help message */
+    else if (splits[0].equals("help")) {
       printHelp();
-    } else if (splits[0].equals("quit")) {
+    }
+    /* Quit gracefully */
+    else if (splits[0].equals("quit")) {
       Socket socket = null;
       ObjectOutputStream oos = null;
       ObjectInputStream ois = null;
+      /* Inform Master */
       try {
         socket = new Socket(masterHost, masterPort);
         oos = new ObjectOutputStream(socket.getOutputStream());
@@ -448,21 +508,27 @@ public class UserCoordinator implements Runnable {
           // ignore
         }
       }
-
       return true;
-    } else {
+    }
+    /* User command unrecognized */
+    else {
       System.out.println("'" + splits[0] + "' is not a recognized command");
     }
     return false;
   }
 
+  /**
+   * Entry point for MapReduce user-side tool.
+   * 
+   * @param args [<tt>ConfigFilePath</tt>, <tt>ParticipantName</tt>].
+   */
   public static void main(String args[]) {
     if (args.length < 2) {
       System.out.println("Please provide a config file and participant name.");
       return;
     }
 
-    // Read config file
+    /* Load config file */
     Properties prop = new Properties();
     try {
       InputStream inputStream = new FileInputStream(args[0]);
@@ -487,7 +553,7 @@ public class UserCoordinator implements Runnable {
     String masterPort = prop.getProperty("master.port");
     String partitionSize = prop.getProperty("partition.size");
 
-    // Verify properties
+    /* Verify properties */
     if (userHost == null) {
       System.out.println("Please specify a '" + args[1] + ".host' in config file.");
       return;
@@ -517,7 +583,7 @@ public class UserCoordinator implements Runnable {
       return;
     }
 
-    // Notify master and start coordinator
+    /* Initial handshake with Master, and start user coordinator. */
     UserCoordinator coordinator =
         new UserCoordinator(args[1], userHost, Integer.parseInt(userPort), dfsRoot, masterHost,
             Integer.parseInt(masterPort), Integer.parseInt(partitionSize));
@@ -531,7 +597,7 @@ public class UserCoordinator implements Runnable {
     coord.start();
     coord.interrupt();
 
-    // Start command line
+    /* Start user-side command line */
     Scanner scan = new Scanner(System.in);
     while (true) {
       System.out.print(args[1] + "@" + userPort + coordinator.disconnect.toString() + " > ");
