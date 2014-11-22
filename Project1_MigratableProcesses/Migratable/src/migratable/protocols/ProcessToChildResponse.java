@@ -11,19 +11,19 @@ import migratable.processes.MigratableProcess;
  *
  */
 public class ProcessToChildResponse implements Serializable {
-    private boolean success;
-    private MigratableProcess process;
+  private boolean success;
+  private MigratableProcess process;
 
-    public ProcessToChildResponse(boolean success, MigratableProcess process) {
-	this.success = success;
-	this.process = process;
-    }
+  public ProcessToChildResponse(boolean success, MigratableProcess process) {
+    this.success = success;
+    this.process = process;
+  }
 
-    public boolean getSuccess() {
-	return success;
-    }
+  public boolean getSuccess() {
+    return success;
+  }
 
-    public MigratableProcess getProcess() {
-	return process;
-    }
+  public MigratableProcess getProcess() {
+    return process;
+  }
 }

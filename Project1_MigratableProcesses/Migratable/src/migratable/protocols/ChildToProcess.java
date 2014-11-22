@@ -9,29 +9,29 @@ import java.io.Serializable;
  *
  */
 public class ChildToProcess implements Serializable {
-    private String command, name, host;
-    private int port;
+  private String command, name, host;
+  private int port;
 
-    public ChildToProcess(String command, String name, String host, int port) {
-	this.command = command;
-	this.name = name;
-	this.host = host;
-	this.port = port;
-    }
+  public ChildToProcess(String command, String name, String host, int port) {
+    this.command = command;
+    this.name = name;
+    this.host = host;
+    this.port = port;
+  }
 
-    public String getCommand() {
-	return command;
-    }
+  public String getCommand() {
+    return command;
+  }
 
-    public String getName() {
-	return name;
-    }
+  public String getName() {
+    return name;
+  }
 
-    public String getHost() {
-	return host;
-    }
+  public String getHost() {
+    return host;
+  }
 
-    public int getPort() {
-	return port;
-    }
+  public int getPort() {
+    return port;
+  }
 }

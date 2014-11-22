@@ -5,13 +5,13 @@ package migratable.network;
  *
  */
 public class ChildNamer {
-    private int counter;
+  private int counter;
 
-    public ChildNamer() {
-	counter = 0;
-    }
+  public ChildNamer() {
+    counter = 0;
+  }
 
-    public synchronized String getNextName() {
-	return "child" + Integer.toString(counter++);
-    }
+  public synchronized String getNextName() {
+    return "child" + Integer.toString(counter++);
+  }
 }

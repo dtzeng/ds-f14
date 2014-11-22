@@ -12,24 +12,24 @@ import migratable.processes.MigratableProcess;
  */
 
 public class ProcessToChild implements Serializable {
-    private String command, name;
-    private MigratableProcess process;
+  private String command, name;
+  private MigratableProcess process;
 
-    public ProcessToChild(String command, String name, MigratableProcess process) {
-	this.command = command;
-	this.name = name;
-	this.process = process;
-    }
+  public ProcessToChild(String command, String name, MigratableProcess process) {
+    this.command = command;
+    this.name = name;
+    this.process = process;
+  }
 
-    public String getCommand() {
-	return command;
-    }
+  public String getCommand() {
+    return command;
+  }
 
-    public String getName() {
-	return name;
-    }
+  public String getName() {
+    return name;
+  }
 
-    public MigratableProcess getProcess() {
-	return process;
-    }
+  public MigratableProcess getProcess() {
+    return process;
+  }
 }

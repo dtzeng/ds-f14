@@ -5,5 +5,5 @@ package mapr.tasks;
  */
 public interface Task extends Runnable {
 
-    public boolean isSuccess();
+  public boolean isSuccess();
 }

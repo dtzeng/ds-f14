@@ -9,13 +9,13 @@ import java.io.Serializable;
  *
  */
 public class ChildToProcessResponse implements Serializable {
-    private boolean success;
+  private boolean success;
 
-    public ChildToProcessResponse(boolean success) {
-	this.success = success;
-    }
+  public ChildToProcessResponse(boolean success) {
+    this.success = success;
+  }
 
-    public boolean getSuccess() {
-	return success;
-    }
+  public boolean getSuccess() {
+    return success;
+  }
 }

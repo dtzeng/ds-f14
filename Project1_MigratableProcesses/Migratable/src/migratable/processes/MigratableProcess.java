@@ -7,16 +7,16 @@ import java.io.Serializable;
  */
 public interface MigratableProcess extends Runnable, Serializable {
 
-    public void run();
+  public void run();
 
-    public void suspend();
+  public void suspend();
 
-    public String getName();
+  public String getName();
 
-    public String getCommand();
+  public String getCommand();
 
-    public boolean getDone();
+  public boolean getDone();
 
-    public void setDone(boolean b);
+  public void setDone(boolean b);
 
 }

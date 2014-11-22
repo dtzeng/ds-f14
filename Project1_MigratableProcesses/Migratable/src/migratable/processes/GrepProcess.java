@@ -11,93 +11,89 @@ import migratable.io.TransactionalFileOutputStream;
 /**
  * Created by Derek on 9/8/2014.
  *
- * Searches for a query line by line, and prints any matching lines to the
- * output file.
+ * Searches for a query line by line, and prints any matching lines to the output file.
  *
  */
 public class GrepProcess implements MigratableProcess {
-    private TransactionalFileInputStream inFile;
-    private TransactionalFileOutputStream outFile;
-    private String query;
-    private String name, command;
+  private TransactionalFileInputStream inFile;
+  private TransactionalFileOutputStream outFile;
+  private String query;
+  private String name, command;
 
-    private volatile boolean suspending;
-    private volatile boolean done;
+  private volatile boolean suspending;
+  private volatile boolean done;
 
-    public GrepProcess(String args[]) throws Exception {
-	if (args.length < 4) {
-	    System.out
-		    .println("usage: GrepProcess <name> <queryString> <inputFile> <outputFile>");
-	    throw new Exception("Invalid Arguments");
-	}
-
-	name = args[0];
-	query = args[1];
-	command = "GrepProcess " + name + " " + query + " " + args[2] + " "
-		+ args[3];
-	inFile = new TransactionalFileInputStream(args[2]);
-	outFile = new TransactionalFileOutputStream(args[3], true);
+  public GrepProcess(String args[]) throws Exception {
+    if (args.length < 4) {
+      System.out.println("usage: GrepProcess <name> <queryString> <inputFile> <outputFile>");
+      throw new Exception("Invalid Arguments");
     }
 
-    public void run() {
-	PrintStream out = new PrintStream(outFile);
-	DataInputStream in = new DataInputStream(inFile);
+    name = args[0];
+    query = args[1];
+    command = "GrepProcess " + name + " " + query + " " + args[2] + " " + args[3];
+    inFile = new TransactionalFileInputStream(args[2]);
+    outFile = new TransactionalFileOutputStream(args[3], true);
+  }
 
-	try {
-	    while (!suspending) {
-		String line = in.readLine();
+  public void run() {
+    PrintStream out = new PrintStream(outFile);
+    DataInputStream in = new DataInputStream(inFile);
 
-		if (line == null || done) {
-		    done = true;
-		    break;
-		}
+    try {
+      while (!suspending) {
+        String line = in.readLine();
 
-		if (line.contains(query)) {
-		    out.println(line);
-		}
+        if (line == null || done) {
+          done = true;
+          break;
+        }
 
-		// Make grep take longer so that we don't require extremely
-		// large files for interesting results
-		try {
-		    Thread.sleep(500);
-		} catch (InterruptedException e) {
-		    // ignore it
-		}
-	    }
-	} catch (EOFException e) {
-	    done = true;
-	} catch (IOException e) {
-	    done = true;
-	    System.out.println("GrepProcess: Error: " + e);
-	    e.printStackTrace();
-	}
+        if (line.contains(query)) {
+          out.println(line);
+        }
 
-	suspending = false;
+        // Make grep take longer so that we don't require extremely
+        // large files for interesting results
+        try {
+          Thread.sleep(500);
+        } catch (InterruptedException e) {
+          // ignore it
+        }
+      }
+    } catch (EOFException e) {
+      done = true;
+    } catch (IOException e) {
+      done = true;
+      System.out.println("GrepProcess: Error: " + e);
+      e.printStackTrace();
     }
 
-    public void suspend() {
-	suspending = true;
-	while (suspending)
-	    ;
-    }
+    suspending = false;
+  }
 
-    @Override
-    public String getName() {
-	return name;
-    }
+  public void suspend() {
+    suspending = true;
+    while (suspending);
+  }
 
-    @Override
-    public String getCommand() {
-	return command;
-    }
+  @Override
+  public String getName() {
+    return name;
+  }
 
-    @Override
-    public boolean getDone() {
-	return done;
-    }
+  @Override
+  public String getCommand() {
+    return command;
+  }
 
-    @Override
-    public void setDone(boolean b) {
-	done = b;
-    }
+  @Override
+  public boolean getDone() {
+    return done;
+  }
+
+  @Override
+  public void setDone(boolean b) {
+    done = b;
+  }
 }

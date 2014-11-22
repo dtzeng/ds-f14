@@ -16,86 +16,84 @@ import migratable.io.TransactionalFileOutputStream;
  */
 public class LineCountProcess implements MigratableProcess {
 
-    private TransactionalFileInputStream inFile;
-    private TransactionalFileOutputStream outFile;
-    private String name, command;
-    private int counter;
+  private TransactionalFileInputStream inFile;
+  private TransactionalFileOutputStream outFile;
+  private String name, command;
+  private int counter;
 
-    private volatile boolean suspending;
-    private volatile boolean done;
+  private volatile boolean suspending;
+  private volatile boolean done;
 
-    public LineCountProcess(String args[]) throws Exception {
-	if (args.length < 3) {
-	    System.out
-		    .println("usage: LineCountProcess <name> <inputFile> <outputFile>");
-	    throw new Exception("Invalid Arguments");
-	}
-
-	counter = 0;
-	name = args[0];
-	command = "LineCountProcess " + name + " " + args[1] + " " + args[2];
-	inFile = new TransactionalFileInputStream(args[1]);
-	outFile = new TransactionalFileOutputStream(args[2], true);
+  public LineCountProcess(String args[]) throws Exception {
+    if (args.length < 3) {
+      System.out.println("usage: LineCountProcess <name> <inputFile> <outputFile>");
+      throw new Exception("Invalid Arguments");
     }
 
-    public void run() {
-	PrintStream out = new PrintStream(outFile);
-	DataInputStream in = new DataInputStream(inFile);
+    counter = 0;
+    name = args[0];
+    command = "LineCountProcess " + name + " " + args[1] + " " + args[2];
+    inFile = new TransactionalFileInputStream(args[1]);
+    outFile = new TransactionalFileOutputStream(args[2], true);
+  }
 
-	try {
-	    while (!suspending) {
-		String line = in.readLine();
+  public void run() {
+    PrintStream out = new PrintStream(outFile);
+    DataInputStream in = new DataInputStream(inFile);
 
-		if (line == null || done) {
-		    done = true;
-		    break;
-		}
+    try {
+      while (!suspending) {
+        String line = in.readLine();
 
-		out.println(Integer.toString(counter));
-		counter++;
+        if (line == null || done) {
+          done = true;
+          break;
+        }
 
-		// Make grep take longer so that we don't require extremely
-		// large files for interesting results
-		try {
-		    Thread.sleep(500);
-		} catch (InterruptedException e) {
-		    // ignore it
-		}
-	    }
-	} catch (EOFException e) {
-	    done = true;
-	} catch (IOException e) {
-	    done = true;
-	    System.out.println("LineCountProcess: Error: " + e);
-	    e.printStackTrace();
-	}
+        out.println(Integer.toString(counter));
+        counter++;
 
-	suspending = false;
+        // Make grep take longer so that we don't require extremely
+        // large files for interesting results
+        try {
+          Thread.sleep(500);
+        } catch (InterruptedException e) {
+          // ignore it
+        }
+      }
+    } catch (EOFException e) {
+      done = true;
+    } catch (IOException e) {
+      done = true;
+      System.out.println("LineCountProcess: Error: " + e);
+      e.printStackTrace();
     }
 
-    public void suspend() {
-	suspending = true;
-	while (suspending)
-	    ;
-    }
+    suspending = false;
+  }
 
-    @Override
-    public String getName() {
-	return name;
-    }
+  public void suspend() {
+    suspending = true;
+    while (suspending);
+  }
 
-    @Override
-    public String getCommand() {
-	return command;
-    }
+  @Override
+  public String getName() {
+    return name;
+  }
 
-    @Override
-    public boolean getDone() {
-	return done;
-    }
+  @Override
+  public String getCommand() {
+    return command;
+  }
 
-    @Override
-    public void setDone(boolean b) {
-	done = b;
-    }
+  @Override
+  public boolean getDone() {
+    return done;
+  }
+
+  @Override
+  public void setDone(boolean b) {
+    done = b;
+  }
 }

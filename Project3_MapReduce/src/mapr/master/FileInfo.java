@@ -12,74 +12,72 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  */
 public class FileInfo implements Serializable {
 
-    private static final long serialVersionUID = -6341305799979787052L;
-    /**
-     * List of worker names that contain some replica of the file.
-     */
-    List<ConcurrentLinkedQueue<String>> partitions;
-    /**
-     * Number of partitions for the file.
-     */
-    int numPartitions;
-    /**
-     * Number of records (lines) of the files.
-     */
-    int numRecords;
+  private static final long serialVersionUID = -6341305799979787052L;
+  /**
+   * List of worker names that contain some replica of the file.
+   */
+  List<ConcurrentLinkedQueue<String>> partitions;
+  /**
+   * Number of partitions for the file.
+   */
+  int numPartitions;
+  /**
+   * Number of records (lines) of the files.
+   */
+  int numRecords;
 
-    public FileInfo(int numPartitions, int numRecords) {
-	partitions = Collections
-		.synchronizedList(new ArrayList<ConcurrentLinkedQueue<String>>(
-			numPartitions));
-	for (int x = 0; x < numPartitions; x++) {
-	    partitions.add(new ConcurrentLinkedQueue<String>());
-	}
-	this.numPartitions = numPartitions;
-	this.numRecords = numRecords;
+  public FileInfo(int numPartitions, int numRecords) {
+    partitions =
+        Collections.synchronizedList(new ArrayList<ConcurrentLinkedQueue<String>>(numPartitions));
+    for (int x = 0; x < numPartitions; x++) {
+      partitions.add(new ConcurrentLinkedQueue<String>());
     }
+    this.numPartitions = numPartitions;
+    this.numRecords = numRecords;
+  }
 
-    public int getNumPartitions() {
-	return numPartitions;
-    }
+  public int getNumPartitions() {
+    return numPartitions;
+  }
 
-    public int getNumRecords() {
-	return numRecords;
-    }
+  public int getNumRecords() {
+    return numRecords;
+  }
 
-    public String getReplicaLocation(int partition) {
-	ConcurrentLinkedQueue<String> replicaLocations = partitions
-		.get(partition);
-	String location = replicaLocations.remove();
-	replicaLocations.add(location);
-	return location;
-    }
+  public String getReplicaLocation(int partition) {
+    ConcurrentLinkedQueue<String> replicaLocations = partitions.get(partition);
+    String location = replicaLocations.remove();
+    replicaLocations.add(location);
+    return location;
+  }
 
-    public void addReplicaLocation(int partition, String worker) {
-	partitions.get(partition).add(worker);
-    }
+  public void addReplicaLocation(int partition, String worker) {
+    partitions.get(partition).add(worker);
+  }
 
-    public void removeReplicaLocation(int partition, String worker) {
-	partitions.get(partition).remove(worker);
-    }
+  public void removeReplicaLocation(int partition, String worker) {
+    partitions.get(partition).remove(worker);
+  }
 
-    public void removeWorker(String worker) {
-	for (int x = 0; x < numPartitions; x++) {
-	    removeReplicaLocation(x, worker);
-	}
+  public void removeWorker(String worker) {
+    for (int x = 0; x < numPartitions; x++) {
+      removeReplicaLocation(x, worker);
     }
+  }
 
-    public String toString() {
-	String result = "";
-	Iterator<ConcurrentLinkedQueue<String>> iter = partitions.iterator();
-	while (iter.hasNext()) {
-	    Iterator<String> locs = iter.next().iterator();
-	    while (locs.hasNext()) {
-		result += locs.next();
-		if (locs.hasNext())
-		    result += ", ";
-	    }
-	    if (iter.hasNext())
-		result += "|";
-	}
-	return result;
+  public String toString() {
+    String result = "";
+    Iterator<ConcurrentLinkedQueue<String>> iter = partitions.iterator();
+    while (iter.hasNext()) {
+      Iterator<String> locs = iter.next().iterator();
+      while (locs.hasNext()) {
+        result += locs.next();
+        if (locs.hasNext())
+          result += ", ";
+      }
+      if (iter.hasNext())
+        result += "|";
     }
+    return result;
+  }
 }

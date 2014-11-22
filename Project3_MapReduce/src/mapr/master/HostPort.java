@@ -7,37 +7,37 @@ import java.io.Serializable;
  */
 public class HostPort implements Serializable {
 
-    private static final long serialVersionUID = -6082476923519403699L;
-    String host;
-    int port;
+  private static final long serialVersionUID = -6082476923519403699L;
+  String host;
+  int port;
 
-    public HostPort(String host, int port) {
-	this.host = host;
-	this.port = port;
-    }
+  public HostPort(String host, int port) {
+    this.host = host;
+    this.port = port;
+  }
 
-    public String getHost() {
-	return host;
-    }
+  public String getHost() {
+    return host;
+  }
 
-    public int getPort() {
-	return port;
-    }
+  public int getPort() {
+    return port;
+  }
 
-    public String toString() {
-	return host + ":" + Integer.toString(port);
-    }
+  public String toString() {
+    return host + ":" + Integer.toString(port);
+  }
 
-    @Override
-    public boolean equals(Object o) {
-	if (!(o instanceof HostPort))
-	    return false;
-	HostPort cast = (HostPort) o;
-	return host.equals(cast.getHost()) && (port == cast.getPort());
-    }
+  @Override
+  public boolean equals(Object o) {
+    if (!(o instanceof HostPort))
+      return false;
+    HostPort cast = (HostPort) o;
+    return host.equals(cast.getHost()) && (port == cast.getPort());
+  }
 
-    @Override
-    public int hashCode() {
-	return host.hashCode() + port;
-    }
+  @Override
+  public int hashCode() {
+    return host.hashCode() + port;
+  }
 }

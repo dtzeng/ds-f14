@@ -6,27 +6,27 @@ import mapr.master.TaskInfo;
  * Created by Derek on 11/16/2014.
  */
 public class TaskThread {
-    TaskInfo info;
-    Thread thread;
+  TaskInfo info;
+  Thread thread;
 
-    public TaskThread(TaskInfo info, Thread thread) {
-	this.info = info;
-	this.thread = thread;
-    }
+  public TaskThread(TaskInfo info, Thread thread) {
+    this.info = info;
+    this.thread = thread;
+  }
 
-    public TaskInfo getInfo() {
-	return info;
-    }
+  public TaskInfo getInfo() {
+    return info;
+  }
 
-    public Thread getThread() {
-	return thread;
-    }
+  public Thread getThread() {
+    return thread;
+  }
 
-    public void setInfo(TaskInfo info) {
-	this.info = info;
-    }
+  public void setInfo(TaskInfo info) {
+    this.info = info;
+  }
 
-    public void setThread(Thread thread) {
-	this.thread = thread;
-    }
+  public void setThread(Thread thread) {
+    this.thread = thread;
+  }
 }
