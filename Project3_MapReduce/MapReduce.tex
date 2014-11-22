@@ -105,18 +105,20 @@ Here is what happens when a MapReduce job is executed:
     & Task Migration: After we have determined that a node is faulty, we re-distribute all tasks running on that node to other available nodes. This this case, we do not need to re-start the entire Job only becaues of one faulty worker node.
 \end{easylist}
 
-
-
 \section{Special Considerations}
-\par\qquad Following are speical features that the authors thinks are useful for application programmers and are beyond the request of the project specification:
+\par\qquad Following are speical features that the authors think are useful for application programmers and are beyond the request of the project specification:
 
-\begin{itemize}
-    \item{\emph{Command Line Utility at RMI Servers and Users:}} 
-    \item{\emph{Elegant Error Catching:}}
-    \item{\emph{MapReduce Elegant Shutdown:}}
-    \item{\emph{Cluster Failure Checking:}}
-    \item{\emph{User node specified:}}
-\end{itemize}
+\subsection{Command Line Utility at RMI Servers and Users:}
+    \par\qquad Different from Hadoop's approach, our MapReduce framework comes with an interactive shell for both \emph{user} and \emph{master} nodes. The shells support most functions as currently supported by Hadoop, and the advantage is that once the shell is up, running any command is only up to the communication time within the framework. In Hadoop's approach, however, a JVM needs to be started for each MapReduce/DFS operation, e.g. \texttt{hdfs dfs -ls foobar}. We are not certain why Hadoop did not choose this approach, but our alternative approach is more light-weight and gives lower latency.
+\subsection{Elegant Error Catching:}
+    \par\qquad Even the best application developers in the world cannot guarantee that their first attempt at writing a complex MapReduce job will work. Therefore, when an application developer feeds us buggy code that causes exceptions in mapper, sorter, or reducer, it is important that the worker node and the Master do not abort. For our framework, when a task causes an exception, the corresponding worker thread would catch it, and send \texttt{taskFailed} to the Master. Although this handling approach can still be improved (see \emph{Section 8.3}), it does guarantee that the availability of our framework is not affected by bugs in user code.
+\subsection{MapReduce Elegant Shutdown:}
+    \par\qquad When the Master node in the MapReduce framework shuts down, its Workers also automatically shut down after cleaning up the working directory for DFS. Meanwhile, the \emph{Uesr} (client) nodes are kept on, but with a message \texttt{DISCONNECTED} attached to the prompt. Also, if a \emph{User} node fails to contact Master after a period of time (defined by user), its state automatically becomes \texttt{DISCONNECTED}, and the user is also able to \emph{re-connect} with the Master. This allows the user nodes to not lose their states due to temporary connection problem to the Master node.
+\subsection{Worker Failure Checking with Heartbeats:}
+    \par\qquad In our implementation, there is a background heartbeat thread at Master node that keeps polling all workers nodes for their statuses. Should any node fail to respond, we give the Master a certain number of chances to retry the heartbeat (defined in user configuration file). If the worker eventually fails to respond, Master re-schedules all tasks related to the node without failing the entire MapReduce job. This makes our MapReduce framework extra resilient to worker failures.
+\subsection{Designated User Nodes:}
+    \par\qquad In our implementation, the user nodes are specifically listed in the configuration file, i.e. the system administrator has full control over which nodes are allowed to communicate with Master node and interact with DFS or execute MapReduce jobs. This adds an extra layer of security for the framework.
+
 
 \section{Developer's Guide -- Using MapReduce Framework}
 
@@ -230,18 +232,16 @@ RMI Server @ 41052 > #userinput[exit]
 
 \section{Further Work \& Enhancements}
 
-Due to time constraints, although the final product is fully functional, it still lacks many features that are desired in commercial packages (like \emph{Hadoop}), and their implementation difficulties also vary. This section will mention a selected few and discuss the difficulty for implementing them.
+\par\qquad Due to time constraints, although the final product is fully functional, it still lacks many features that are desired in commercial packages (like \emph{Hadoop}), and their implementation difficulties also vary. This section will mention a selected few and discuss the difficulty for implementing them.
 
 \subsection{MapReduce Job Priority}
+    \par\qquad Currently, the MapReduce jobs in our framework are executed in a first-come-first-served basis. However, it would be nice if we could support priority-based job/task scheduling, because on a production cluster we might have a MapReduce job that takes $10$ hours to complete, yet in the mean time we might want to add a job that takes $1$ hour to complete. In the current framework, we will not get our result for the shorter job untill after $11$ hours. However, if job priority is supported, then we can set the long-running job with priority value \texttt{NORMAL}, and let the short job have priority \texttt{HIGH}. In this case, the short job will be able to run even before the long job finishes, so we can get our results faster.
+    
+\subsection{Pipelining MapReduce Phases}
+    \par\qquad In reality, sometimes application developers might want to chain many MapReduce jobs together, i.e. feed the output of a MapReduce job directly to another MapReduce job. However, our current framework only supports sending a single MapReduce job at a time based on existing input, so in this case we need someone to wait for the reduce phase of the first MapReduce to complete before assigning the second MapReduce phase. However, this manual labor can be avoided if we can enhance our Application Developer API such that it supports pipelining many MapReduce jobs together.
 
-
-\subsection{Fully Support Hadoop-wise Developer API}
-
-
-\subsection{Elegant RMI Exception Reporting}
-
-
-\subsection{Daemonize MapReduce Framework}
+\subsection{Global Logging}
+    \par\qquad Despite the failure recovery techniques we implemented as in \emph{Section 4.3}, when an exception occurs the MapReduce job will more likely survive, but it does \emph{not} help the Application Developer to debug the application because there is no persistent logging of our framework. A helpful enhancement would be for each node in the cluster to periodically log its past activities, exceptions, and then store the logs on DFS so that the application developer (User node) is able to examine the file and debug the application.
 
 \urlstyle{rm}
 
