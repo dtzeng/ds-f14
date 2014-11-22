@@ -1,9 +1,8 @@
 package migratable.protocols;
 
+import java.io.Serializable;
 
 import migratable.processes.MigratableProcess;
-
-import java.io.Serializable;
 
 /**
  * Created by Derek on 9/6/2014.
@@ -16,15 +15,15 @@ public class ProcessToChildResponse implements Serializable {
     private MigratableProcess process;
 
     public ProcessToChildResponse(boolean success, MigratableProcess process) {
-        this.success = success;
-        this.process = process;
+	this.success = success;
+	this.process = process;
     }
 
     public boolean getSuccess() {
-        return success;
+	return success;
     }
 
     public MigratableProcess getProcess() {
-        return process;
+	return process;
     }
 }

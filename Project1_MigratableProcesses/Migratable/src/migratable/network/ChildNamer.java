@@ -8,10 +8,10 @@ public class ChildNamer {
     private int counter;
 
     public ChildNamer() {
-        counter = 0;
+	counter = 0;
     }
 
     public synchronized String getNextName() {
-        return "child" + Integer.toString(counter++);
+	return "child" + Integer.toString(counter++);
     }
 }

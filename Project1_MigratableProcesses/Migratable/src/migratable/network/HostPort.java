@@ -10,19 +10,19 @@ public class HostPort implements Serializable {
     private int port;
 
     public HostPort(String host, int port) {
-        this.host = host;
-        this.port = port;
+	this.host = host;
+	this.port = port;
     }
 
     public String getHost() {
-        return host;
+	return host;
     }
 
     public int getPort() {
-        return port;
+	return port;
     }
 
     public String toString() {
-        return host + ":" + Integer.toString(port);
+	return host + ":" + Integer.toString(port);
     }
 }

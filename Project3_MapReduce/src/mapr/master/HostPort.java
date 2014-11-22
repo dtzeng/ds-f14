@@ -6,35 +6,38 @@ import java.io.Serializable;
  * Created by Derek on 11/12/2014.
  */
 public class HostPort implements Serializable {
+
+    private static final long serialVersionUID = -6082476923519403699L;
     String host;
     int port;
 
     public HostPort(String host, int port) {
-        this.host = host;
-        this.port = port;
+	this.host = host;
+	this.port = port;
     }
 
     public String getHost() {
-        return host;
+	return host;
     }
 
     public int getPort() {
-        return port;
+	return port;
     }
 
     public String toString() {
-        return host + ":" + Integer.toString(port);
+	return host + ":" + Integer.toString(port);
     }
 
     @Override
     public boolean equals(Object o) {
-        if(!(o instanceof HostPort)) return false;
-        HostPort cast = (HostPort) o;
-        return host.equals(cast.getHost()) && (port == cast.getPort());
+	if (!(o instanceof HostPort))
+	    return false;
+	HostPort cast = (HostPort) o;
+	return host.equals(cast.getHost()) && (port == cast.getPort());
     }
 
     @Override
     public int hashCode() {
-        return host.hashCode() + port;
+	return host.hashCode() + port;
     }
 }

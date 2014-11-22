@@ -11,20 +11,21 @@ public class KVWriter {
     RandomAccessFile file;
 
     public KVWriter(String filename) throws FileNotFoundException {
-        this.file = new RandomAccessFile(filename, "rw");
+	this.file = new RandomAccessFile(filename, "rw");
     }
 
     public void writeKV(String key, String value) throws IOException {
-        String val = "";
-        if(value != null) val = ":" + value;
-        file.writeBytes(key + val + "\n");
+	String val = "";
+	if (value != null)
+	    val = ":" + value;
+	file.writeBytes(key + val + "\n");
     }
 
     public void close() {
-        try {
-            file.close();
-        } catch (IOException e) {
-            // ignore
-        }
+	try {
+	    file.close();
+	} catch (IOException e) {
+	    // ignore
+	}
     }
 }

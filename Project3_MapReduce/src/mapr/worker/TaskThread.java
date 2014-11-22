@@ -10,23 +10,23 @@ public class TaskThread {
     Thread thread;
 
     public TaskThread(TaskInfo info, Thread thread) {
-        this.info = info;
-        this.thread = thread;
+	this.info = info;
+	this.thread = thread;
     }
 
     public TaskInfo getInfo() {
-        return info;
+	return info;
     }
 
     public Thread getThread() {
-        return thread;
+	return thread;
     }
 
     public void setInfo(TaskInfo info) {
-        this.info = info;
+	this.info = info;
     }
 
     public void setThread(Thread thread) {
-        this.thread = thread;
+	this.thread = thread;
     }
 }

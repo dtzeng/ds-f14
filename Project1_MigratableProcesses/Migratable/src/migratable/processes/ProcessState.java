@@ -6,42 +6,43 @@ package migratable.processes;
 public class ProcessState {
     private String name, command, suspended, child;
 
-    public ProcessState(String name, String command, String suspended, String child) {
-        this.name = name;
-        this.command = command;
-        this.suspended = suspended;
-        this.child = child;
+    public ProcessState(String name, String command, String suspended,
+	    String child) {
+	this.name = name;
+	this.command = command;
+	this.suspended = suspended;
+	this.child = child;
     }
 
     public String getName() {
-        return name;
+	return name;
     }
 
     public void setName(String name) {
-        this.name = name;
+	this.name = name;
     }
 
     public String getCommand() {
-        return command;
+	return command;
     }
 
     public void setCommand(String command) {
-        this.command = command;
+	this.command = command;
     }
 
     public String getSuspended() {
-        return suspended;
+	return suspended;
     }
 
     public void setSuspended(String suspended) {
-        this.suspended = suspended;
+	this.suspended = suspended;
     }
 
     public String getChild() {
-        return child;
+	return child;
     }
 
     public void setChild(String child) {
-        this.child = child;
+	this.child = child;
     }
 }
