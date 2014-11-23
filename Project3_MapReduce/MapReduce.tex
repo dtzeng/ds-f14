@@ -82,8 +82,14 @@ This report reflects our final progress on MapReduce Framework project for 15-44
 
 \section{Lifecycle of MapReduce Job}
 Here is what happens when a MapReduce job is executed:
-\subsection*{Step One: User Load Data onto DFS}
-\subsection*{Step Two: User Execute Task from User CLI}
+\subsection*{Step One: User Loads File onto DFS}
+"upload" command on user CLI.  sends the byte contents to the master.  master takes the contents and partitions into blocks based on size specified in config.  for each block, find a random subset of workers (equal to replication factor in config), and send to each of the workers.  master updates its file trackers if successful and returns to user whether success or not.
+\subsection*{Step Two: User Starts Job from User CLI}
+"count" or "grep" command on user CLI.  job type and parameters are sent to the master.  master takes the parameters and splits the job into map, sort, reduce tasks and adds them to the scheduler (metadata only).  scheduler will keep track of all the dependencies and send the appropriate task metadata to the workers when ready
+\subsection*{Step Three: Coordination Between Master and Workers to Complete Job}
+(i feel we should combine the old step 3/4/5 because they all sort of work together, and are all concurrent at the same time)
+master and workers must coordinate to make sure task dependencies are reinforced while keeping track of what else must be executed for a job.  when a map is done on a worker, it notifies the master, so the master knows that its corresponding sort is ready to be execute anytime on the intermediate file.  when a sort is done a worker, it also notifies the master, but the reduce is only ready to be launched, when all sorts on that specific worker is done.  when a reduce is done, the final result output file is done, so it also sends back the result file to the master. the master in turn will send the file back to the user, and it will be put in the user's dfs root.\\\\
+(we should explain in more detail how the map, sorts, and reduce work, but this is the main outline)
 \subsection*{Step Three: Mappers Feed Results to Sorters}
 \subsection*{Step Four: Sorters Feed Results to Reducers}
 \subsection*{Step Five: Reducers Return Results Back to Client}
@@ -140,7 +146,7 @@ gkesden@ghc11 dtzeng-yzong.x$ #userinput[./build.sh]
 
 \subsection{Testing Instructions}
 
-\par\qquad The following test routine is designed to survey most functionalities of the MapReduce framework. Feel free to experiment with different commands in MapReduce Master and MapReduce User command-line interfaces.  In our example, our facility has 1 master and 3 workers, with 2 users connected.  Let \texttt{GHC\_M} be the host of the master process, \texttt{GHC\_{W1/2/3}} the workers, and \texttt{GHC\_{U1/2}} the users.
+\par\qquad The following test routine is designed to survey most functionalities of the MapReduce framework. Feel free to experiment with different commands in MapReduce Master and MapReduce User command-line interfaces.  In our example, our facility has 1 master and 3 workers, with 2 users connected.  First, change the hostnames in \texttt{mapr.properties} to reflect the desired Gates machines for testing.  Let \texttt{GHC\_M} be the host of the master process, \texttt{GHC\_{W1/2/3}} the workers, and \texttt{GHC\_{U1/2}} the users.
 
 To start up the facility, do the following:
 
