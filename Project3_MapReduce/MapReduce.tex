@@ -241,8 +241,6 @@ When you run the \texttt{jobs} command again, you will see that the status for j
     \par\qquad In reality, sometimes application developers might want to chain many MapReduce jobs together, i.e. feed the output of a MapReduce job directly to another MapReduce job. However, our current framework only supports sending a single MapReduce job at a time based on existing input, so in this case we need someone to wait for the reduce phase of the first MapReduce to complete before assigning the second MapReduce phase. However, this manual labor can be avoided if we can enhance our Application Developer API such that it supports pipelining many MapReduce jobs together.
 
 \subsection{Global Logging}
-    \par\qquad Despite the failure recovery techniques we implemented as in \emph{Section 4.3}, when an exception occurs the MapReduce job will more likely survive, but it does \emph{not} help the Application Developer to debug the application because there is no persistent logging of our framework. A helpful enhancement would be for each node in the cluster to periodically log its past activities, exceptions, and then store the logs on DFS so that the application developer (User node) is able to examine the file and debug the application.
-
-\urlstyle{rm}
+    \par\qquad Despite the failure recovery techniques we implemented as in \emph{Section 4}, when an exception occurs the MapReduce job will more likely survive, but it does \emph{not} help the Application Developer to debug the application because there is no persistent logging of our framework. A helpful enhancement would be for each node in the cluster to periodically log its past activities, exceptions, and then store the logs on DFS so that the application developer (User node) is able to examine the file and debug the application.
 
 \end{document}
