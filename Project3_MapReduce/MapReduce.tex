@@ -88,16 +88,7 @@ Here is what happens when a MapReduce job is executed:
 \subsection*{Step Four: Sorters Feed Results to Reducers}
 \subsection*{Step Five: Reducers Return Results Back to Client}
 
-\section{Communication Protocols}
-\par\qquad As seen in the previous section, the key of the MapReduce framework is its management of concurrent requests, especially at the Master node. The following two sub-section will survey the network interactions between MapReduce Master node and two other components. 
-
-\subsection{Communication Between MapReduce User \& MapReduce Master}
-
-\par\qquad By discussion in \emph{Section One}, (What master does). Following are the communication details of each method:
-
-\subsection{Communication Protocol: MapReduce Master \& MapReduce Workers}
-
-\subsection{Failure Handling}
+\section{Failure Handling}
 \par\qquad Due to the inherent unreliability of a network, it is not unlikely that some request packages fail to go through temporarily. Also, because potentially a large number of machines can be involved in the framework, it is fairly possible that some nodes go down while running a task. Without proper failure handling, that faulty node can be a \emph{single point of failure (SPOF)}, which is what we want to avoid in a distributed system. Therefore, we adopted the following three approaches to handle failures:
 \begin{easylist}[itemize]
     & Periodic Heartbeat: The master node sends periodic \texttt{ping} requests to all workers. If after a certain amount of time the worker still has not responded, we mark the worker as ``faulty'', and migrate the tasks already assigned to it to other nodes (see \emph{Task Migration} below);
