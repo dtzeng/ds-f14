@@ -2,6 +2,9 @@
 *.dia
 *.docx
 *.jpeg
+*.png
+*.tex
+*.sty
 *.iml
 .idea/
 out/
